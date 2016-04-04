@@ -23,6 +23,7 @@ let mutable projectName = ""
 let mutable folderPrecompiled = @"\"+ projectName + ".Release_precompiled "
 let mutable publishDirectory = rootPublishDirectory @@ projectName
 let mutable publishingProfile = projectName + "PublishProfile"
+let mutable shouldPublishSite = false
 
 Target "Set Solution Name" (fun _ ->
     
@@ -43,10 +44,23 @@ Target "Set Solution Name" (fun _ ->
     publishDirectory <- rootPublishDirectory @@  projectName
     publishingProfile <- projectName + "PublishProfile"
 
+    let subDirectories = directoryInfo(currentDirectory).GetDirectories()
+    
+    if subDirectories.Length > 0 then 
+        for directory in subDirectories do
+            if shouldPublishSite = false then 
+                shouldPublishSite <- fileExists((directory.FullName @@ @"Properties\PublishProfiles\" @@ publishingProfile + ".pubxml"))
+                
+    else
+        shouldPublishSite <- false
+            
+    
 
+    trace ("Will publish: " + (shouldPublishSite.ToString()))
     trace publishingProfile
     trace publishDirectory
     trace folderPrecompiled
+    
 
     trace ("Project Name has been set to: " + projectName)
 
@@ -127,26 +141,31 @@ Target "Build Solution"(fun _ ->
 
 Target "Publish Solution"(fun _ ->
     
-    let buildMode = getBuildParamOrDefault "buildMode" "Debug"
+
+    if shouldPublishSite then
+
+        let buildMode = getBuildParamOrDefault "buildMode" "Debug"
 
 
-    let directoryinfo = FileSystemHelper.directoryInfo(@".\" @@ publishDirectory)
-    let directory = directoryinfo.FullName
-    trace directory
+        let directoryinfo = FileSystemHelper.directoryInfo(@".\" @@ publishDirectory)
+        let directory = directoryinfo.FullName
+        trace directory
 
-    let properties = 
-                    [
-                        ("DebugSymbols", "False");
-                        ("Configuration", buildMode);
-                        ("PublishProfile", @".\" + publishingProfile + ".pubxml");
-                        ("PublishUrl", directory);
-                        ("DeployOnBuild","True");
-                        ("ToolsVersion","14");
-                    ]
+        let properties = 
+                        [
+                            ("DebugSymbols", "False");
+                            ("Configuration", buildMode);
+                            ("PublishProfile", @".\" + publishingProfile + ".pubxml");
+                            ("PublishUrl", directory);
+                            ("DeployOnBuild","True");
+                            ("ToolsVersion","14");
+                        ]
 
-    !! (@"./" + projectName + ".sln")
-        |> MSBuildReleaseExt null properties "Build"
-        |> Log "Build-Output: "
+        !! (@"./" + projectName + ".sln")
+            |> MSBuildReleaseExt null properties "Build"
+            |> Log "Build-Output: "
+    else
+        trace "Skipping publish"
 )
 
 Target "Cleaning Unit Tests" (fun _ ->
@@ -212,34 +231,36 @@ Target "Run Integration Tests" (fun _ ->
             {p with
                 ToolPath = nUnitToolPath;
                 StopOnError = false;
-                //OutputDir = fileInfo(testDll).DirectoryName;
                 ResultSpecs = ["TestResult.xml;format=nunit2"];
                 })
 )
 
 Target "Compile Views" (fun _ ->
-    trace "Compiling views"
+    if shouldPublishSite then
+        trace "Compiling views"
     
-    let directoryinfo = FileSystemHelper.directoryInfo(@".\" @@ publishDirectory)
-    let directory = directoryinfo.FullName
-    trace directory
+        let directoryinfo = FileSystemHelper.directoryInfo(@".\" @@ publishDirectory)
+        let directory = directoryinfo.FullName
+        trace directory
 
 
-    let directoryinfo = FileSystemHelper.directoryInfo(publishDirectory @@ @"\..\"+ folderPrecompiled)
-    let directoryOutput = directoryinfo.FullName
-    trace directoryOutput
+        let directoryinfo = FileSystemHelper.directoryInfo(publishDirectory @@ @"\..\"+ folderPrecompiled)
+        let directoryOutput = directoryinfo.FullName
+        trace directoryOutput
 
 
-    let result =
-        ExecProcess (fun info ->
-            info.FileName <- ("C:/Windows/Microsoft.NET/Framework/v4.0.30319/aspnet_compiler.exe")
-            info.Arguments <- @"-v \" + folderPrecompiled + " -p . " + directoryOutput
-            info.WorkingDirectory <- publishDirectory
-        ) (System.TimeSpan.FromMinutes 10.)
+        let result =
+            ExecProcess (fun info ->
+                info.FileName <- ("C:/Windows/Microsoft.NET/Framework/v4.0.30319/aspnet_compiler.exe")
+                info.Arguments <- @"-v \" + folderPrecompiled + " -p . " + directoryOutput
+                info.WorkingDirectory <- publishDirectory
+            ) (System.TimeSpan.FromMinutes 10.)
         
 
 
-    if result <> 0 then failwith "Failed to compile views"
+        if result <> 0 then failwith "Failed to compile views"
+    else
+        trace "skipping compiling views"
 )
 
 
@@ -265,33 +286,35 @@ Target "Build Project" (fun _ ->
 
 Target "Zip Compiled Source" (fun _ ->
 
-    trace "Zip Compiled Source"
+    if shouldPublishSite then
+        trace "Zip Compiled Source"
 
-    let directoryinfo = FileSystemHelper.directoryInfo(EnvironmentHelper.combinePaths publishDirectory @"\..\" @@ folderPrecompiled)
-    let directory = directoryinfo.FullName
+        let directoryinfo = FileSystemHelper.directoryInfo(EnvironmentHelper.combinePaths publishDirectory @"\..\" @@ folderPrecompiled)
+        let directory = directoryinfo.FullName
 
 
-    !! (directory + "/**/*.*") 
-        -- "*.zip"
-        |> Zip directory (publishDirectory @@  (sprintf  @"\..\%s.%s.zip" projectName buildVersion))
-
+        !! (directory + "/**/*.*") 
+            -- "*.zip"
+            |> Zip directory (publishDirectory @@  (sprintf  @"\..\%s.%s.zip" projectName buildVersion))
+    else
+        trace "Skipping zipping source"
 )
 
 
 let CreateSite (environment, directory, port) =
-    
-    let siteName = (sprintf "%s.%s.WebSite" projectName environment)
-    let appPoolName = (sprintf "%s.%s.appPool" projectName environment)
-    let port = port
-    let path =  directory
+    if shouldPublishSite then
+        let siteName = (sprintf "%s.%s.WebSite" projectName environment)
+        let appPoolName = (sprintf "%s.%s.appPool" projectName environment)
+        let port = port
+        let path =  directory
 
-    let siteConfig = SiteConfig(siteName, port, path, appPoolName)
-    let appPoolConfig = ApplicationPoolConfig(appPoolName)
+        let siteConfig = SiteConfig(siteName, port, path, appPoolName)
+        let appPoolConfig = ApplicationPoolConfig(appPoolName)
 
-    (IIS
-      (Site siteConfig)
-      (ApplicationPool appPoolConfig)
-      (None))
+        (IIS
+          (Site siteConfig)
+          (ApplicationPool appPoolConfig)
+          (None))
 
 Target "Create Accceptance Test Site in IIS" (fun _ ->
     trace "Create Acceptance site"
