@@ -205,8 +205,8 @@ Target "Run NUnit Tests" (fun _ ->
 
 Target "Cleaning Integration Tests" (fun _ ->
 
-    trace "Cleaning Integration Tests"
-    !! (".\**\*.IntegrationTests.csproj")
+    trace "Cleaning Acceptance Tests"
+    !! (".\**\*.AcceptanceTests.csproj")
       |> myBuildConfig "" "Clean"
       |> Log "AppBuild-Output: "
 
@@ -215,7 +215,7 @@ Target "Cleaning Integration Tests" (fun _ ->
 Target "Building Integration Tests" (fun _ ->
 
     trace "Building Integration Tests"
-    !! (".\**\*.IntegrationTests.csproj")
+    !! (".\**\*.AcceptanceTests.csproj")
       |> myBuildConfig "" "Rebuild"
       |> Log "AppBuild-Output: "
 
@@ -224,7 +224,7 @@ Target "Building Integration Tests" (fun _ ->
 Target "Run Integration Tests" (fun _ ->
 
     trace "Run Integration Tests"
-    let testDlls = !! ("./**/bin/" + testDirectory + "/*.IntegrationTests.dll") 
+    let testDlls = !! ("./**/bin/" + testDirectory + "/*.AcceptanceTests.dll") 
         
     for testDll in testDlls do
         [testDll] |> Fake.Testing.NUnit3.NUnit3 (fun p ->
