@@ -78,13 +78,13 @@ Target "Set Solution Name" (fun _ ->
 
 Target "Update Assembly Info Version Numbers"(fun _ ->
 
-    trace "Update Assembly Info Version Numbers"
-
-    BulkReplaceAssemblyInfoVersions(currentDirectory) (fun p ->
-            {p with
-                AssemblyFileVersion = versionNumber 
-                AssemblyVersion = versionNumber 
-                })
+    if testDirectory.ToLower() = "release" then
+        trace "Update Assembly Info Version Numbers"
+        BulkReplaceAssemblyInfoVersions(currentDirectory) (fun p ->
+                {p with
+                    AssemblyFileVersion = versionNumber 
+                    AssemblyVersion = versionNumber 
+                    })
 )
 
 Target "Clean Publish Directory" (fun _ ->
