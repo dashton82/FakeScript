@@ -16,6 +16,7 @@ let testDirectory = getBuildParamOrDefault "buildMode" "Debug"
 let myBuildConfig = if testDirectory = "Release" then MSBuildRelease else MSBuildDebug
 let userPath = getBuildParamOrDefault "userDirectory" @"C:\Users\buildguest\"
 
+let nugetAccessKey = getBuildParamOrDefault "nugetAccessKey" ""
 
 let isAutomationProject = getBuildParamOrDefault "AcceptanceTests" "false"
 
@@ -349,6 +350,26 @@ Target "Create Development Site in IIS" (fun _ ->
     trace "Create Development Site"
     let directory = FileSystemHelper.directoryInfo(currentDirectory).FullName @@ projectName
     CreateSite("Dev",directory,":7070:")
+)
+
+
+
+Target "Create Nuget Package" (fun _ ->
+    
+    "FAKEBuildScript.nuspec"
+    |> NuGet (fun p -> 
+        {p with               
+            Authors = ["Daniel Ashton"]
+            Project = "FAKEBuildScript"
+            Summary = "Simple Script used for building .NET projects locally and on a CI"
+            Description = "Build script for .NET projects using FAKE. Simply install the nuget package and then execute the RunBuild.bat file. This will then build the solution file, and run any tests that are available. The Tests are picked up by convention, anything ending in .UnitTests. If there is a Publishing Profile, named [SolutionName]PublishingProfile, this will also create two websites in IIS, one for dev and one for test."
+            Version = "1.0.3.0"
+            NoPackageAnalysis = true
+            OutputPath = currentDirectory
+            WorkingDir = currentDirectory
+            AccessKey = nugetAccessKey
+            Publish = true
+            })
 )
 
 "Set Solution Name"
