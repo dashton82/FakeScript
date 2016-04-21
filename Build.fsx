@@ -10,12 +10,15 @@ let findNuget = @"tools/nuget"
 
 RestorePackages()
 
-
 let nUnitToolPath = @"tools\NUnit.ConsoleRunner\tools\nunit3-console.exe"
 let rootPublishDirectory = getBuildParamOrDefault "publishDirectory"  @"C:\CompiledSource"
 let testDirectory = getBuildParamOrDefault "buildMode" "Debug"
 let myBuildConfig = if testDirectory = "Release" then MSBuildRelease else MSBuildDebug
 let userPath = getBuildParamOrDefault "userDirectory" @"C:\Users\buildguest\"
+
+let assemblyMajorNumber = environVarOrDefault "BUILD_MAJORNUMBER" "1" 
+let assemblyMinorNumber = environVarOrDefault "BUILD_MINORNUMBER" "0" 
+let assemblyBuildNumber = environVarOrDefault "BUILD_BUILDNUMBER" "0" 
 
 let isAutomationProject = getBuildParamOrDefault "AcceptanceTests" "false"
 
@@ -24,6 +27,8 @@ let mutable folderPrecompiled = @"\"+ projectName + ".Release_precompiled "
 let mutable publishDirectory = rootPublishDirectory @@ projectName
 let mutable publishingProfile = projectName + "PublishProfile"
 let mutable shouldPublishSite = false
+
+let mutable versionNumber = "1.0.0.0"
 
 Target "Set Solution Name" (fun _ ->
     
@@ -40,7 +45,7 @@ Target "Set Solution Name" (fun _ ->
     let solutionFileHelper = FileSystemHelper.fileInfo(findSolutionFile)
             
     projectName <- solutionFileHelper.Name.Replace(solutionFileHelper.Extension, "")
-    folderPrecompiled <- @"\"+ projectName + ".Release_precompiled "
+    folderPrecompiled <- sprintf @"\%s.%s_precompiled " projectName testDirectory
     publishDirectory <- rootPublishDirectory @@  projectName
     publishingProfile <- projectName + "PublishProfile"
 
@@ -53,17 +58,34 @@ Target "Set Solution Name" (fun _ ->
                 
     else
         shouldPublishSite <- false
-            
+       
+    //for TeamCity
+    versionNumber <- "1.0.0.0"
     
+    if testDirectory.ToLower() = "Release" then
+        versionNumber <- buildVersion
+        if versionNumber = "LocalBuild" then
+            versionNumber <- sprintf  @"%s.%s.%s.0" assemblyMajorNumber assemblyMinorNumber assemblyBuildNumber
 
     trace ("Will publish: " + (shouldPublishSite.ToString()))
     trace publishingProfile
     trace publishDirectory
     trace folderPrecompiled
-    
+    trace versionNumber
 
     trace ("Project Name has been set to: " + projectName)
 
+)
+
+Target "Update Assembly Info Version Numbers"(fun _ ->
+
+    trace "Update Assembly Info Version Numbers"
+
+    BulkReplaceAssemblyInfoVersions(currentDirectory) (fun p ->
+            {p with
+                AssemblyFileVersion = versionNumber 
+                AssemblyVersion = versionNumber 
+                })
 )
 
 Target "Clean Publish Directory" (fun _ ->
@@ -86,7 +108,7 @@ Target "Clean Publish Directory" (fun _ ->
     else
         FileHelper.CreateDir(publishDirectory)
 
-    let directoryinfo = FileSystemHelper.directoryInfo(EnvironmentHelper.combinePaths publishDirectory @"\..\"+ projectName + ".Release_precompiled ")
+    let directoryinfo = FileSystemHelper.directoryInfo(EnvironmentHelper.combinePaths publishDirectory @"\..\" + folderPrecompiled)
     let directory = directoryinfo.FullName
     trace directory
     if FileHelper.TestDir(directory) then
@@ -295,7 +317,7 @@ Target "Zip Compiled Source" (fun _ ->
 
         !! (directory + "/**/*.*") 
             -- "*.zip"
-            |> Zip directory (publishDirectory @@  (sprintf  @"\..\%s.%s.zip" projectName buildVersion))
+            |> Zip directory (publishDirectory @@  (sprintf  @"\..\%s.%s.zip" projectName versionNumber))
     else
         trace "Skipping zipping source"
 )
@@ -337,6 +359,7 @@ Target "Create Development Site in IIS" (fun _ ->
     //==>"Run Integration Tests"
 
 "Set Solution Name"
+   ==>"Update Assembly Info Version Numbers"
    ==>"Clean Publish Directory"
    ==>"Build Solution"
    ==>"Publish Solution"
