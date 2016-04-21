@@ -16,9 +16,6 @@ let testDirectory = getBuildParamOrDefault "buildMode" "Debug"
 let myBuildConfig = if testDirectory = "Release" then MSBuildRelease else MSBuildDebug
 let userPath = getBuildParamOrDefault "userDirectory" @"C:\Users\buildguest\"
 
-let assemblyMajorNumber = environVarOrDefault "BUILD_MAJORNUMBER" "1" 
-let assemblyMinorNumber = environVarOrDefault "BUILD_MINORNUMBER" "0" 
-let assemblyBuildNumber = environVarOrDefault "BUILD_BUILDNUMBER" "0" 
 
 let isAutomationProject = getBuildParamOrDefault "AcceptanceTests" "false"
 
@@ -58,21 +55,23 @@ Target "Set Solution Name" (fun _ ->
                 
     else
         shouldPublishSite <- false
-       
-    //for TeamCity
-    versionNumber <- "1.0.0.0"
     
-    if testDirectory.ToLower() = "Release" then
+    versionNumber <- "1.0.0.0"    
+    let assemblyMajorNumber = environVarOrDefault "BUILD_MAJORNUMBER" "1" 
+    let assemblyMinorNumber = environVarOrDefault "BUILD_MINORNUMBER" "0" 
+
+    if testDirectory.ToLower() = "release" then
         versionNumber <- buildVersion
-        if versionNumber = "LocalBuild" then
-            versionNumber <- sprintf  @"%s.%s.%s.0" assemblyMajorNumber assemblyMinorNumber assemblyBuildNumber
+        if versionNumber.ToLower() <> "localbuild" then
+            versionNumber <- sprintf  @"%s.%s.%s.0" assemblyMajorNumber assemblyMinorNumber buildVersion
+        else
+            versionNumber <- "1.0.0.0"
 
     trace ("Will publish: " + (shouldPublishSite.ToString()))
-    trace publishingProfile
-    trace publishDirectory
-    trace folderPrecompiled
-    trace versionNumber
-
+    trace ("PublishingProfile: " + publishingProfile)
+    trace ("PublishDirectory: " + publishDirectory)
+    trace ("PrecompiledFolder: " + folderPrecompiled)
+    trace ("VersionNumber:" + versionNumber)
     trace ("Project Name has been set to: " + projectName)
 
 )
