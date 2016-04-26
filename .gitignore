@@ -46,3 +46,4 @@ packages/FAKE.3.35.4/docs/*.*
 tools/FAKE/**/*.*
 tools/**/*.*
 packages/**/*.*
+CreateNugetPackage.bat

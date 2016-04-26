@@ -7,7 +7,7 @@
   <owners>@authors@</owners>
   <summary>@summary@</summary>
   <requireLicenseAcceptance>false</requireLicenseAcceptance>
-  <description>@description@</description>
+  <description>Build script for .NET projects using FAKE. Simply install the nuget package and then execute the RunBuild.bat file. This will then build the solution file, and run any tests that are available. The Tests are picked up by convention, anything ending in .UnitTests. If there is a Publishing Profile, named [SolutionName]PublishingProfile, this will also create two websites in IIS, one for dev and one for test.</description>
   <releaseNotes>@releaseNotes@</releaseNotes>
   <licenseUrl>https://github.com/dashton82/FakeScript</licenseUrl>
   <projectUrl>https://github.com/dashton82/FakeScript</projectUrl>
