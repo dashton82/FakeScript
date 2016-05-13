@@ -20,6 +20,9 @@ let nugetAccessKey = getBuildParamOrDefault "nugetAccessKey" ""
 
 let isAutomationProject = getBuildParamOrDefault "AcceptanceTests" "false"
 
+let devWebsitePort = getBuildParamOrDefault "devport" "7070"
+let accWebsitePort = getBuildParamOrDefault "accport" "5050"
+
 let mutable projectName = ""
 let mutable folderPrecompiled = @"\"+ projectName + ".Release_precompiled "
 let mutable publishDirectory = rootPublishDirectory @@ projectName
@@ -342,14 +345,14 @@ Target "Create Accceptance Test Site in IIS" (fun _ ->
     trace "Create Acceptance site"
     let directoryinfo = FileSystemHelper.directoryInfo(publishDirectory)
     let directory = directoryinfo.FullName
-    CreateSite("Acc",directory,":5050:")
+    CreateSite("Acc",directory,":" + accWebsitePort + ":")
 
 )
 
 Target "Create Development Site in IIS" (fun _ ->
     trace "Create Development Site"
     let directory = FileSystemHelper.directoryInfo(currentDirectory).FullName @@ projectName
-    CreateSite("Dev",directory,":7070:")
+    CreateSite("Dev",directory,":"+ devWebsitePort + ":")
 )
 
 
@@ -363,12 +366,12 @@ Target "Create Nuget Package" (fun _ ->
             Project = "FAKEBuildScript"
             Summary = "Simple Script used for building .NET projects locally and on a CI"
             Description = "Build script for .NET projects using FAKE. Simply install the nuget package and then execute the RunBuild.bat file. This will then build the solution file, and run any tests that are available. The Tests are picked up by convention, anything ending in .UnitTests. If there is a Publishing Profile, named [SolutionName]PublishingProfile, this will also create two websites in IIS, one for dev and one for test."
-            Version = "1.0.3.0"
+            Version = "1.0.4"
             NoPackageAnalysis = true
             OutputPath = currentDirectory
             WorkingDir = currentDirectory
             AccessKey = nugetAccessKey
-            Publish = true
+            Publish = false
             })
 )
 
