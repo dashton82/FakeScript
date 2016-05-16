@@ -20,8 +20,8 @@ let nugetAccessKey = getBuildParamOrDefault "nugetAccessKey" ""
 
 let isAutomationProject = getBuildParamOrDefault "AcceptanceTests" "false"
 
-let devWebsitePort = getBuildParamOrDefault "devport" "7070"
-let accWebsitePort = getBuildParamOrDefault "accport" "5050"
+let devWebsitePort = getBuildParamOrDefault "devport" "7071"
+let accWebsitePort = getBuildParamOrDefault "accport" "5051"
 
 let mutable projectName = ""
 let mutable folderPrecompiled = @"\"+ projectName + ".Release_precompiled "
@@ -359,20 +359,27 @@ Target "Create Development Site in IIS" (fun _ ->
 
 Target "Create Nuget Package" (fun _ ->
     
-    "FAKEBuildScript.nuspec"
-    |> NuGet (fun p -> 
-        {p with               
-            Authors = ["Daniel Ashton"]
-            Project = "FAKEBuildScript"
-            Summary = "Simple Script used for building .NET projects locally and on a CI"
-            Description = "Build script for .NET projects using FAKE. Simply install the nuget package and then execute the RunBuild.bat file. This will then build the solution file, and run any tests that are available. The Tests are picked up by convention, anything ending in .UnitTests. If there is a Publishing Profile, named [SolutionName]PublishingProfile, this will also create two websites in IIS, one for dev and one for test."
-            Version = "1.0.4"
-            NoPackageAnalysis = true
-            OutputPath = currentDirectory
-            WorkingDir = currentDirectory
-            AccessKey = nugetAccessKey
-            Publish = false
-            })
+
+    if testDirectory.ToLower() = "release" then
+        let nupkgFiles = !! (currentDirectory + "/**/*.nuspec") 
+
+    
+        for nupkgFile in nupkgFiles do
+            let fileInfo = fileSystemInfo(nupkgFile)
+            (fileInfo.FullName)
+            |> NuGet (fun p -> 
+                {p with               
+                    Authors = ["DAS"]
+                    Project = fileInfo.Name
+                    Summary = fileInfo.Name
+                    Description = fileInfo.Name
+                    Version = versionNumber
+                    NoPackageAnalysis = true
+                    OutputPath = FileSystemHelper.DirectoryName(fileInfo.FullName) @@ "bin/Release"
+                    WorkingDir = FileSystemHelper.DirectoryName(fileInfo.FullName)
+                    AccessKey = nugetAccessKey
+                    Publish = false
+                    })
 )
 
 "Set Solution Name"
@@ -390,6 +397,7 @@ Target "Create Nuget Package" (fun _ ->
    ==>"Building Unit Tests"
    ==>"Run NUnit Tests"
    ==>"Compile Views"
+   ==>"Create Nuget Package"
    ==>"Zip Compiled Source"
    ==>"Create Development Site in IIS"
    ==>"Create Accceptance Test Site in IIS"
