@@ -383,7 +383,7 @@ Target "Create Nuget Package" (fun _ ->
             (fileInfo.FullName)
             |> NuGet (fun p -> 
                 {p with               
-                    Authors = ["DAS"]
+                    Authors = [name]
                     Project = name
                     Summary = name
                     Description = name
