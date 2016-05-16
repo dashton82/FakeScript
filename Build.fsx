@@ -16,6 +16,8 @@ let testDirectory = getBuildParamOrDefault "buildMode" "Debug"
 let myBuildConfig = if testDirectory = "Release" then MSBuildRelease else MSBuildDebug
 let userPath = getBuildParamOrDefault "userDirectory" @"C:\Users\buildguest\"
 
+let publishNuget = getBuildParamOrDefault "publishNuget" "false"
+let nugetOutputDirectory = getBuildParamOrDefault "nugetOutputDirectory" "bin/Release"
 let nugetAccessKey = getBuildParamOrDefault "nugetAccessKey" ""
 
 let isAutomationProject = getBuildParamOrDefault "AcceptanceTests" "false"
@@ -29,11 +31,15 @@ let mutable publishDirectory = rootPublishDirectory @@ projectName
 let mutable publishingProfile = projectName + "PublishProfile"
 let mutable shouldPublishSite = false
 
-let mutable versionNumber = "1.0.0.0"
+let mutable versionNumber = getBuildParamOrDefault "versionNumber" "1.0.0.0"
+
+let mutable solutionFilePresent = true
 
 Target "Set Solution Name" (fun _ ->
     
     let directoryHelper = FileSystemHelper.directoryInfo(currentDirectory).Name
+
+    
 
     let mutable solutionNameToMatch = ""
     if isAutomationProject.ToLower() = "false" then 
@@ -41,42 +47,46 @@ Target "Set Solution Name" (fun _ ->
     else 
         solutionNameToMatch <- "*Automation.sln"
 
-    let findSolutionFile = FindFirstMatchingFile "*.sln" currentDirectory
+    let findSolutionFile = TryFindFirstMatchingFile "*.sln" currentDirectory
     
-    let solutionFileHelper = FileSystemHelper.fileInfo(findSolutionFile)
+    if findSolutionFile.IsSome then
+        
+        let solutionFileHelper = FileSystemHelper.fileInfo(findSolutionFile.Value)
             
-    projectName <- solutionFileHelper.Name.Replace(solutionFileHelper.Extension, "")
-    folderPrecompiled <- sprintf @"\%s.%s_precompiled " projectName testDirectory
-    publishDirectory <- rootPublishDirectory @@  projectName
-    publishingProfile <- projectName + "PublishProfile"
+        projectName <- solutionFileHelper.Name.Replace(solutionFileHelper.Extension, "")
+        folderPrecompiled <- sprintf @"\%s.%s_precompiled " projectName testDirectory
+        publishDirectory <- rootPublishDirectory @@  projectName
+        publishingProfile <- projectName + "PublishProfile"
 
-    let subDirectories = directoryInfo(currentDirectory).GetDirectories()
+        let subDirectories = directoryInfo(currentDirectory).GetDirectories()
     
-    if subDirectories.Length > 0 then 
-        for directory in subDirectories do
-            if shouldPublishSite = false then 
-                shouldPublishSite <- fileExists((directory.FullName @@ @"Properties\PublishProfiles\" @@ publishingProfile + ".pubxml"))
+        if subDirectories.Length > 0 then 
+            for directory in subDirectories do
+                if shouldPublishSite = false then 
+                    shouldPublishSite <- fileExists((directory.FullName @@ @"Properties\PublishProfiles\" @@ publishingProfile + ".pubxml"))
                 
-    else
-        shouldPublishSite <- false
-    
-    versionNumber <- "1.0.0.0"    
-    let assemblyMajorNumber = environVarOrDefault "BUILD_MAJORNUMBER" "1" 
-    let assemblyMinorNumber = environVarOrDefault "BUILD_MINORNUMBER" "0" 
-
-    if testDirectory.ToLower() = "release" then
-        versionNumber <- buildVersion
-        if versionNumber.ToLower() <> "localbuild" then
-            versionNumber <- sprintf  @"%s.%s.0.%s" assemblyMajorNumber assemblyMinorNumber buildVersion
         else
-            versionNumber <- "1.0.0.0"
+            shouldPublishSite <- false
+    
+        versionNumber <- "1.0.0.0"    
+        let assemblyMajorNumber = environVarOrDefault "BUILD_MAJORNUMBER" "1" 
+        let assemblyMinorNumber = environVarOrDefault "BUILD_MINORNUMBER" "0" 
 
-    trace ("Will publish: " + (shouldPublishSite.ToString()))
-    trace ("PublishingProfile: " + publishingProfile)
-    trace ("PublishDirectory: " + publishDirectory)
-    trace ("PrecompiledFolder: " + folderPrecompiled)
-    trace ("VersionNumber:" + versionNumber)
-    trace ("Project Name has been set to: " + projectName)
+        if testDirectory.ToLower() = "release" then
+            versionNumber <- buildVersion
+            if versionNumber.ToLower() <> "localbuild" then
+                versionNumber <- sprintf  @"%s.%s.0.%s" assemblyMajorNumber assemblyMinorNumber buildVersion
+            else
+                versionNumber <- "1.0.0.0"
+
+        trace ("Will publish: " + (shouldPublishSite.ToString()))
+        trace ("PublishingProfile: " + publishingProfile)
+        trace ("PublishDirectory: " + publishDirectory)
+        trace ("PrecompiledFolder: " + folderPrecompiled)
+        trace ("VersionNumber:" + versionNumber)
+        trace ("Project Name has been set to: " + projectName)
+    else
+        solutionFilePresent <- false
 
 )
 
@@ -139,16 +149,18 @@ Target "Build DNX Project"(fun _ ->
 )
 
 let buildSolution() = 
-    let buildMode = getBuildParamOrDefault "buildMode" "Debug"
 
-    let properties = 
-                    [
-                        ("TargetProfile","cloud")
-                    ]
+    if solutionFilePresent then
+        let buildMode = getBuildParamOrDefault "buildMode" "Debug"
 
-    !! (@"./" + projectName + ".sln")
-        |> MSBuildReleaseExt null properties "Publish"
-        |> Log "Build-Output: "
+        let properties = 
+                        [
+                            ("TargetProfile","cloud")
+                        ]
+
+        !! (@"./" + projectName + ".sln")
+            |> MSBuildReleaseExt null properties "Publish"
+            |> Log "Build-Output: "
 
 
 Target "Build Acceptance Solution"(fun _ ->
@@ -375,10 +387,10 @@ Target "Create Nuget Package" (fun _ ->
                     Description = fileInfo.Name
                     Version = versionNumber
                     NoPackageAnalysis = true
-                    OutputPath = FileSystemHelper.DirectoryName(fileInfo.FullName) @@ "bin/Release"
+                    OutputPath = FileSystemHelper.DirectoryName(fileInfo.FullName) @@ nugetOutputDirectory
                     WorkingDir = FileSystemHelper.DirectoryName(fileInfo.FullName)
                     AccessKey = nugetAccessKey
-                    Publish = false
+                    Publish = System.Convert.ToBoolean(publishNuget)
                     })
 )
 
