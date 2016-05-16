@@ -205,6 +205,21 @@ Target "Publish Solution"(fun _ ->
         trace "Skipping publish"
 )
 
+Target "Clean Projects" (fun _ ->
+    trace "Clean Projects"
+    !! (".\**\*.csproj")
+        |> myBuildConfig "" "Clean"
+        |> Log "AppBuild-Output: "
+)
+
+
+Target "Build Projects" (fun _ ->
+    trace "Build Projects"
+    !! (".\**\*.csproj")
+        |> myBuildConfig "" "Rebuild"
+        |> Log "AppBuild-Output: "
+)
+
 Target "Cleaning Unit Tests" (fun _ ->
 
     trace "Cleaning Unit Tests"
@@ -405,6 +420,8 @@ Target "Create Nuget Package" (fun _ ->
 "Set Solution Name"
    ==>"Update Assembly Info Version Numbers"
    ==>"Clean Publish Directory"
+   ==>"Clean Projects"
+   ==>"Build Projects"
    ==>"Build Solution"
    ==>"Publish Solution"
    ==>"Cleaning Unit Tests"
