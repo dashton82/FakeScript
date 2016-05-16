@@ -378,13 +378,15 @@ Target "Create Nuget Package" (fun _ ->
     
         for nupkgFile in nupkgFiles do
             let fileInfo = fileSystemInfo(nupkgFile)
+            let name = fileInfo.Name.Replace(fileInfo.Extension,"")
+            
             (fileInfo.FullName)
             |> NuGet (fun p -> 
                 {p with               
                     Authors = ["DAS"]
-                    Project = fileInfo.Name
-                    Summary = fileInfo.Name
-                    Description = fileInfo.Name
+                    Project = name
+                    Summary = name
+                    Description = name
                     Version = versionNumber
                     NoPackageAnalysis = true
                     OutputPath = FileSystemHelper.DirectoryName(fileInfo.FullName) @@ nugetOutputDirectory
