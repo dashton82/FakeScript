@@ -67,7 +67,7 @@ Target "Set Solution Name" (fun _ ->
     if testDirectory.ToLower() = "release" then
         versionNumber <- buildVersion
         if versionNumber.ToLower() <> "localbuild" then
-            versionNumber <- sprintf  @"%s.%s.%s.0" assemblyMajorNumber assemblyMinorNumber buildVersion
+            versionNumber <- sprintf  @"%s.%s.0.%s" assemblyMajorNumber assemblyMinorNumber buildVersion
         else
             versionNumber <- "1.0.0.0"
 
