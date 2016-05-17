@@ -244,7 +244,9 @@ Target "Run NUnit Tests" (fun _ ->
     trace "Run NUnit Tests"
     let testDlls = !! ("./*.UnitTests/bin/" + testDirectory + "/*.UnitTests.dll") 
 
-    if testDlls.Includes.IsEmpty = false then
+    trace (testDlls.Includes.IsEmpty.ToString())
+
+    if not testDlls.Includes.IsEmpty then
         testDlls |> Fake.Testing.NUnit3.NUnit3 (fun p ->
             {p with
                 ToolPath = nUnitToolPath;
@@ -277,7 +279,7 @@ Target "Run Acceptance Tests" (fun _ ->
     trace "Run Acceptance Tests"
     let testDlls = !! ("./**/bin/" + testDirectory + "/*.AcceptanceTests.dll") 
     
-    if testDlls.Includes.IsEmpty = false then
+    if not testDlls.Includes.IsEmpty then
         testDlls |> Fake.Testing.NUnit3.NUnit3 (fun p ->
             {p with
                 ToolPath = nUnitToolPath;
