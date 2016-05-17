@@ -244,13 +244,14 @@ Target "Run NUnit Tests" (fun _ ->
     trace "Run NUnit Tests"
     let testDlls = !! ("./*.UnitTests/bin/" + testDirectory + "/*.UnitTests.dll") 
 
-    testDlls |> Fake.Testing.NUnit3.NUnit3 (fun p ->
-        {p with
-            ToolPath = nUnitToolPath;
-            ShadowCopy = false;
-            Framework = Testing.NUnit3.NUnit3Runtime.Net45;
-            ResultSpecs = ["TestResult.xml;format=nunit2"];
-            })
+    if testDlls.Includes.IsEmpty = false then
+        testDlls |> Fake.Testing.NUnit3.NUnit3 (fun p ->
+            {p with
+                ToolPath = nUnitToolPath;
+                ShadowCopy = false;
+                Framework = Testing.NUnit3.NUnit3Runtime.Net45;
+                ResultSpecs = ["TestResult.xml;format=nunit2"];
+                })
 )
 
 Target "Cleaning Integration Tests" (fun _ ->
@@ -275,13 +276,14 @@ Target "Run Acceptance Tests" (fun _ ->
 
     trace "Run Acceptance Tests"
     let testDlls = !! ("./**/bin/" + testDirectory + "/*.AcceptanceTests.dll") 
-        
-    testDlls |> Fake.Testing.NUnit3.NUnit3 (fun p ->
-        {p with
-            ToolPath = nUnitToolPath;
-            StopOnError = false;
-            ResultSpecs = ["TestResult.xml;format=nunit2"];
-            })
+    
+    if testDlls.Includes.IsEmpty = false then
+        testDlls |> Fake.Testing.NUnit3.NUnit3 (fun p ->
+            {p with
+                ToolPath = nUnitToolPath;
+                StopOnError = false;
+                ResultSpecs = ["TestResult.xml;format=nunit2"];
+                })
 )
 
 Target "Compile Views" (fun _ ->
