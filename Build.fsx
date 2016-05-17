@@ -244,15 +244,13 @@ Target "Run NUnit Tests" (fun _ ->
     trace "Run NUnit Tests"
     let testDlls = !! ("./*.UnitTests/bin/" + testDirectory + "/*.UnitTests.dll") 
 
-    
-    for testDll in testDlls do
-        [testDll] |> Fake.Testing.NUnit3.NUnit3 (fun p ->
-            {p with
-                ToolPath = nUnitToolPath;
-                ShadowCopy = false;
-                Framework = Testing.NUnit3.NUnit3Runtime.Net45;
-                ResultSpecs = ["TestResult.xml;format=nunit2"];
-                })
+    testDlls |> Fake.Testing.NUnit3.NUnit3 (fun p ->
+        {p with
+            ToolPath = nUnitToolPath;
+            ShadowCopy = false;
+            Framework = Testing.NUnit3.NUnit3Runtime.Net45;
+            ResultSpecs = ["TestResult.xml;format=nunit2"];
+            })
 )
 
 Target "Cleaning Integration Tests" (fun _ ->
@@ -273,18 +271,17 @@ Target "Building Integration Tests" (fun _ ->
 
 )
 
-Target "Run Integration Tests" (fun _ ->
+Target "Run Acceptance Tests" (fun _ ->
 
-    trace "Run Integration Tests"
+    trace "Run Acceptance Tests"
     let testDlls = !! ("./**/bin/" + testDirectory + "/*.AcceptanceTests.dll") 
         
-    for testDll in testDlls do
-        [testDll] |> Fake.Testing.NUnit3.NUnit3 (fun p ->
-            {p with
-                ToolPath = nUnitToolPath;
-                StopOnError = false;
-                ResultSpecs = ["TestResult.xml;format=nunit2"];
-                })
+    testDlls |> Fake.Testing.NUnit3.NUnit3 (fun p ->
+        {p with
+            ToolPath = nUnitToolPath;
+            StopOnError = false;
+            ResultSpecs = ["TestResult.xml;format=nunit2"];
+            })
 )
 
 Target "Compile Views" (fun _ ->
@@ -415,7 +412,7 @@ Target "Create Nuget Package" (fun _ ->
     ==>"Build Acceptance Solution"
     ==>"Cleaning Integration Tests"
     ==>"Building Integration Tests"
-    //==>"Run Integration Tests"
+    //==>"Run Acceptance Tests"
 
 "Set Solution Name"
    ==>"Update Assembly Info Version Numbers"
