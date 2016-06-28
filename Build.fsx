@@ -256,7 +256,7 @@ Target "Run NUnit Tests" (fun _ ->
                 ToolPath = nUnitToolPath;
                 ShadowCopy = false;
                 Framework = Testing.NUnit3.NUnit3Runtime.Net45;
-                ResultSpecs = ["TestResult.xml;format=nunit2"];
+                ResultSpecs = ["TestResult.xml"];
                 })
 )
 
@@ -294,7 +294,7 @@ Target "Run Acceptance Tests" (fun _ ->
             {p with
                 ToolPath = nUnitToolPath;
                 StopOnError = false;
-                ResultSpecs = ["TestResult.xml;format=nunit2"];
+                ResultSpecs = ["TestResult.xml"];
                 })
 )
 
