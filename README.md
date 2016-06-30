@@ -23,7 +23,7 @@ Second Parameter is for the Target, if running on CI, it is advisalbe to change 
 Which will stop the creation of the two sites on the build server
 
 ### Publishing Profile
-A publishing profile is required to be able to create the test version of the site. The format for this name should be [SolutionName]PublishingProfile.
+A publishing profile is required to be able to create the test version of the site. The format for this name should be [SolutionName]PublishProfile.
 
 ### Unit Tests
 Unit test projects should be named "*.UnitTests" these will then automatically be picked up. A Single TestResult.xml file is then created at the same level of the solution
