@@ -16,6 +16,7 @@ let testDirectory = getBuildParamOrDefault "buildMode" "Debug"
 let myBuildConfig = if testDirectory = "Release" then MSBuildRelease else MSBuildDebug
 let userPath = getBuildParamOrDefault "userDirectory" @"C:\Users\buildguest\"
 
+let nunitTestFormat = getBuildParamOrDefault "nunitTestFormat" "nunit2"
 let publishNuget = getBuildParamOrDefault "publishNuget" "false"
 let nugetOutputDirectory = getBuildParamOrDefault "nugetOutputDirectory" "bin/Release"
 let nugetAccessKey = getBuildParamOrDefault "nugetAccessKey" ""
@@ -256,7 +257,7 @@ Target "Run NUnit Tests" (fun _ ->
                 ToolPath = nUnitToolPath;
                 ShadowCopy = false;
                 Framework = Testing.NUnit3.NUnit3Runtime.Net45;
-                ResultSpecs = ["TestResult.xml"];
+                ResultSpecs = [("TestResult.xml;format=" + nunitTestFormat)];
                 })
 )
 
@@ -294,7 +295,7 @@ Target "Run Acceptance Tests" (fun _ ->
             {p with
                 ToolPath = nUnitToolPath;
                 StopOnError = false;
-                ResultSpecs = ["TestResult.xml"];
+                ResultSpecs = [("TestResult.xml;format=" + nunitTestFormat)];
                 })
 )
 
