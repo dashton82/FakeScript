@@ -39,20 +39,21 @@ let mutable versionNumber = getBuildParamOrDefault "versionNumber" "1.0.0.0"
 let mutable solutionFilePresent = true
 
 Target "Set version number" (fun _ ->
+    if publishNuget.ToLower() = "false" then
+        let assemblyMajorNumber = environVarOrDefault "BUILD_MAJORNUMBER" "1" 
+        let assemblyMinorNumber = environVarOrDefault "BUILD_MINORNUMBER" "0" 
 
-    let assemblyMajorNumber = environVarOrDefault "BUILD_MAJORNUMBER" "1" 
-    let assemblyMinorNumber = environVarOrDefault "BUILD_MINORNUMBER" "0" 
+        if testDirectory.ToLower() = "release" then
+            versionNumber <- buildVersion
+            if versionNumber.ToLower() <> "localbuild" then
+                versionNumber <- sprintf  @"%s.%s.0.%s" assemblyMajorNumber assemblyMinorNumber buildVersion
+            else
+                versionNumber <- "1.0.0.0"
 
-    if testDirectory.ToLower() = "release" then
-        versionNumber <- buildVersion
-        if versionNumber.ToLower() <> "localbuild" then
-            versionNumber <- sprintf  @"%s.%s.0.%s" assemblyMajorNumber assemblyMinorNumber buildVersion
-        else
-            versionNumber <- "1.0.0.0"
+    else
+        trace "Skipping version number set"
 
-
-    trace ("VersionNumber:" + versionNumber)
-
+    trace versionNumber
 )
 
 Target "Set Solution Name" (fun _ ->
