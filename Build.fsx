@@ -40,7 +40,6 @@ let mutable solutionFilePresent = true
 
 Target "Set version number" (fun _ ->
 
-    versionNumber <- "1.0.0.0"    
     let assemblyMajorNumber = environVarOrDefault "BUILD_MAJORNUMBER" "1" 
     let assemblyMinorNumber = environVarOrDefault "BUILD_MINORNUMBER" "0" 
 
