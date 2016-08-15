@@ -31,6 +31,9 @@ Unit test projects should be named "*.UnitTests" these will then automatically b
 ### Cloud Services
 Cloud projects will automatically be created if the project type exists.
 
+### Database Projects
+Database projects can have the .dacpac files created, providing you have publish profile with the format [SolutionName].Database.Publish.xml and the project name is [SolutionName].Database. You also should make sure in your build configuration for the solution that this is not built as part of a Release build.
+
 ### Assemby Versioning
 Assembly versioning will work on your chosen CI - this should use the format buildVersion number and follow semantic versioning. You can then override the Major and Minor values through Environment Variables.
 
