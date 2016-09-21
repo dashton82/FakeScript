@@ -182,7 +182,7 @@ let buildSolution() =
                 let properties = 
                         [
                             ("TargetProfile",configurationName);
-                            ("OutputPath",configurationName);
+                            ("OutputPath",@"bin/" @@ configurationName);
                         ]    
             
                 !! (@"./" + projectName + ".sln")
