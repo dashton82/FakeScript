@@ -170,21 +170,26 @@ Target "Build DNX Project"(fun _ ->
     if result <> 0 then failwith "Failed to build DNX project"
 
 )
-
+  
 let buildSolution() = 
 
     if solutionFilePresent then
-        let buildMode = getBuildParamOrDefault "buildMode" "Debug"
-
-        let properties = 
+        
+        for file in !! ("./**/ServiceConfiguration.*.cscfg") do
+            let configurationName = FileSystemHelper.fileInfo(file).Name.Replace("ServiceConfiguration.","").Replace(".cscfg","")
+            trace configurationName
+            if configurationName.ToUpper() <> "LOCAL" then
+                let properties = 
                         [
-                            ("TargetProfile","cloud")
-                        ]
+                            ("TargetProfile",configurationName);
+                            ("OutputPath",configurationName);
+                        ]    
+            
+                !! (@"./" + projectName + ".sln")
+                    |> MSBuildReleaseExt null properties "Publish"
+                    |> Log "Build-Output: "
 
-        !! (@"./" + projectName + ".sln")
-            |> MSBuildReleaseExt null properties "Publish"
-            |> Log "Build-Output: "
-
+                
 
 Target "Build Acceptance Solution"(fun _ ->
     buildSolution()
