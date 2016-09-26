@@ -177,7 +177,20 @@ let buildSolution() =
         
         for file in !! ("./**/ServiceConfiguration.*.cscfg") do
             let configurationName = FileSystemHelper.fileInfo(file).Name.Replace("ServiceConfiguration.","").Replace(".cscfg","")
-            trace configurationName
+
+            let directory = FileSystemHelper.fileInfo(file).DirectoryName
+
+            let configFile = FileSystemHelper.fileInfo(directory @@ (@"./Configuration/ServiceDefinition." + configurationName + ".csdef"))
+
+            let targetFile = FileSystemHelper.fileInfo(directory @@ (@"ServiceDefinition.csdef"))
+
+            let fileExists = FileSystemHelper.fileExists configFile.FullName
+
+            if fileExists && testDirectory.ToLower() = "release" then
+                let fileRename = FileSystemHelper.fileInfo((configFile.DirectoryName @@ "./ServiceDefinition.csdef")).FullName
+                FileHelper.CopyFile fileRename configFile.FullName
+                FileHelper.MoveFile targetFile.DirectoryName fileRename
+
             if configurationName.ToUpper() <> "LOCAL" then
                 let properties = 
                         [
@@ -188,8 +201,7 @@ let buildSolution() =
                 !! (@"./" + projectName + ".sln")
                     |> MSBuildReleaseExt null properties "Publish"
                     |> Log "Build-Output: "
-
-                
+                           
 
 Target "Build Acceptance Solution"(fun _ ->
     buildSolution()
