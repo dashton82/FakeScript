@@ -303,28 +303,24 @@ Target "Publish Database project"(fun _ ->
         trace "Skipping Publish Database project"
 )
 
-Target "Clean Projects" (fun _ ->
-    trace "Clean Projects"
-    !! (".\**\*.csproj")
-        |> myBuildConfig "" "Clean"
-        |> Log "AppBuild-Output: "
-)
+Target "Clean Build Directories" (fun _ ->
+    
+    let mutable files = !! ("./**/bin/*.*")
+    files <- files.And("./**/**/debug/*.*")
+    files <- files.And("./**/**/release/*.*")
+    files <- files.And("./**/obj/*.*") 
+    
+    let directoryNames = [| for file in files -> fileInfo(file).Directory.FullName |]
 
+    FileHelper.DeleteDirs(Seq.distinct(directoryNames)) |> ignore
+
+)
 
 Target "Build Projects" (fun _ ->
     trace "Build Projects"
     !! (".\**\*.csproj")
         |> myBuildConfig "" "Rebuild"
         |> Log "AppBuild-Output: "
-)
-
-Target "Cleaning Unit Tests" (fun _ ->
-
-    trace "Cleaning Unit Tests"
-    !! (".\**\*.UnitTests.csproj")
-      |> myBuildConfig "" "Clean"
-      |> Log "AppBuild-Output: "
-
 )
 
 Target "Building Unit Tests" (fun _ ->
@@ -531,12 +527,11 @@ Target "Create Nuget Package" (fun _ ->
    ==>"Set Solution Name"
    ==>"Update Assembly Info Version Numbers"
    ==>"Clean Publish Directory"
-   ==>"Clean Projects"
+   ==>"Clean Build Directories" 
+   ==>"Publish Solution"
    ==>"Build Projects"
    ==>"Build Solution"
    ==>"Build Database project"
-   ==>"Publish Solution"
-   ==>"Cleaning Unit Tests"
    ==>"Building Unit Tests"
    ==>"Run NUnit Tests"
    ==>"Compile Views"
