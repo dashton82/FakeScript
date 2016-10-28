@@ -334,7 +334,7 @@ Target "Building Unit Tests" (fun _ ->
 
 Target "Build WebJob Project" ( fun _ ->
     
-    let directoryinfo = FileSystemHelper.directoryInfo(@".\" @@ publishDirectory @@ "\WebJob")
+    let directoryinfo = FileSystemHelper.directoryInfo(@".\" @@ publishDirectory @@ "\..\WebJob")
     let directory = directoryinfo.FullName
     traceImportant directory
     let properties = 
