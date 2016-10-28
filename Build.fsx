@@ -332,6 +332,26 @@ Target "Building Unit Tests" (fun _ ->
 
 )
 
+Target "Build WebJob Project" ( fun _ ->
+    
+    let directoryinfo = FileSystemHelper.directoryInfo(@".\" @@ publishDirectory @@ "\WebJob")
+    let directory = directoryinfo.FullName
+    traceImportant directory
+    let properties = 
+                    [
+                        ("DeployOnBuild", "True");
+                        ("WebPublishMethod", "Package");
+                        ("SkipInvalidConfigurations", "true");
+                        ("PackageLocation", directory);
+                        ("ToolsVersion","14");
+                    ]
+
+    !! (@".\**\*.WebJob.csproj")
+        |> MSBuildReleaseExt null properties "Build"
+        |> Log "Build-Output: "
+    
+)
+
 Target "Run NUnit Tests" (fun _ ->
 
     trace "Run NUnit Tests"
@@ -532,6 +552,7 @@ Target "Create Nuget Package" (fun _ ->
    ==>"Build Projects"
    ==>"Build Solution"
    ==>"Build Database project"
+   ==>"Build WebJob Project" 
    ==>"Building Unit Tests"
    ==>"Run NUnit Tests"
    ==>"Compile Views"
