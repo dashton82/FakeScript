@@ -238,7 +238,7 @@ Target "Publish Solution"(fun _ ->
                             ("ToolsVersion","14");
                         ]
 
-        !! (@"./" + projectName + ".sln")
+        !! (@"./" + projectName + ".Web/" + projectName + ".Web.csproj")
             |> MSBuildReleaseExt null properties "Build"
             |> Log "Build-Output: "
     else
