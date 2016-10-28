@@ -40,6 +40,9 @@ Assembly versioning will work on your chosen CI - this should use the format bui
 ### Zipping
 A zip file will be created of the compiled website, version number will be the same as mentioned above.
 
+### Azure Webjobs
+Azure webjobs can be built and packaged providing that the project name ends with .webjob.csproj. These will then be pacakged and added to the publish directory
+
 ### DNX Support
 _Coming Soon_
 
