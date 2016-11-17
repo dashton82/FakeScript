@@ -198,7 +198,7 @@ let buildSolution() =
                             ("OutputPath",@"bin/" @@ configurationName);
                         ]    
             
-                !! (@"./" + projectName + ".sln")
+                !! (@"./" + directory + "/*.ccproj")
                     |> MSBuildReleaseExt null properties "Publish"
                     |> Log "Build-Output: "
                            
@@ -307,13 +307,14 @@ Target "Clean Build Directories" (fun _ ->
     
     let mutable files = !! ("./**/bin/*.*")
     files <- files.And("./**/**/debug/*.*")
+    files <- files.And("./**/bin/**/*.*")
     files <- files.And("./**/**/release/*.*")
-    files <- files.And("./**/obj/*.*") 
+    files <- files.And("./**/obj/*.*")
+    FileHelper.DeleteFile("./TestResult.xml")
     
     let directoryNames = [| for file in files -> fileInfo(file).Directory.FullName |]
 
     FileHelper.DeleteDirs(Seq.distinct(directoryNames)) |> ignore
-
 )
 
 Target "Build Projects" (fun _ ->
@@ -548,13 +549,13 @@ Target "Create Nuget Package" (fun _ ->
    ==>"Update Assembly Info Version Numbers"
    ==>"Clean Publish Directory"
    ==>"Clean Build Directories" 
-   ==>"Publish Solution"
    ==>"Build Projects"
+   ==>"Building Unit Tests"
+   ==>"Run NUnit Tests"
    ==>"Build Solution"
    ==>"Build Database project"
    ==>"Build WebJob Project" 
-   ==>"Building Unit Tests"
-   ==>"Run NUnit Tests"
+   ==>"Publish Solution"  
    ==>"Compile Views"
    ==>"Create Nuget Package"
    ==>"Zip Compiled Source"
