@@ -6,7 +6,7 @@ From Package Manager Console
 ````
 Install-Package FAKEBuildScript
 ````
-## Usuage
+## Usage
 
 After installed, run __RunBuild.Bat__ from the command line. This will automatically detect the solution file in your folder. This will build all projects in the solution, by default this is done in Debug configuration.
 
