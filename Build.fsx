@@ -124,9 +124,8 @@ Target "Update Assembly Info Version Numbers"(fun _ ->
                     })
 )
 
-Target "Clean Publish Directory" (fun _ ->
-    trace "Clean Publish Directory"
-
+Target "Clean Directories" (fun _ ->
+    
     if FileHelper.TestDir(rootPublishDirectory) then
         FileHelper.CleanDir(rootPublishDirectory)
     else
@@ -152,7 +151,18 @@ Target "Clean Publish Directory" (fun _ ->
     else
         FileHelper.CreateDir(directory)
 
+    let mutable files = !! ("./**/bin/*.*")
+    files <- files.And("./**/**/debug/*.*")
+    files <- files.And("./**/bin/**/*.*")
+    files <- files.And("./**/**/release/*.*")
+    files <- files.And("./**/obj/*.*")
+    FileHelper.DeleteFile("./TestResult.xml")
+    
+    let directoryNames = [| for file in files -> fileInfo(file).Directory.FullName |]
+
+    FileHelper.DeleteDirs(Seq.distinct(directoryNames)) |> ignore
 )
+
 
 Target "Build DNX Project"(fun _ ->
 
@@ -170,10 +180,12 @@ Target "Build DNX Project"(fun _ ->
     if result <> 0 then failwith "Failed to build DNX project"
 
 )
-  
-let buildSolution() = 
+                             
 
-    if solutionFilePresent then
+Target "Build Cloud Projects"(fun _ ->
+    let buildMode = getBuildParamOrDefault "buildMode" "Debug"
+
+    if solutionFilePresent && buildMode.ToLower().Equals("release") then
         
         for file in !! ("./**/ServiceConfiguration.*.cscfg") do
             let configurationName = FileSystemHelper.fileInfo(file).Name.Replace("ServiceConfiguration.","").Replace(".cscfg","")
@@ -201,16 +213,6 @@ let buildSolution() =
                 !! (@"./" + directory + "/*.ccproj")
                     |> MSBuildReleaseExt null properties "Publish"
                     |> Log "Build-Output: "
-                           
-
-Target "Build Acceptance Solution"(fun _ ->
-    buildSolution()
-)
-
-
-
-Target "Build Solution"(fun _ ->
-    buildSolution()
 )
 
 
@@ -303,53 +305,25 @@ Target "Publish Database project"(fun _ ->
         trace "Skipping Publish Database project"
 )
 
-Target "Clean Build Directories" (fun _ ->
-    
-    let mutable files = !! ("./**/bin/*.*")
-    files <- files.And("./**/**/debug/*.*")
-    files <- files.And("./**/bin/**/*.*")
-    files <- files.And("./**/**/release/*.*")
-    files <- files.And("./**/obj/*.*")
-    FileHelper.DeleteFile("./TestResult.xml")
-    
-    let directoryNames = [| for file in files -> fileInfo(file).Directory.FullName |]
-
-    FileHelper.DeleteDirs(Seq.distinct(directoryNames)) |> ignore
-)
-
-Target "Build Projects" (fun _ ->
-    trace "Build Projects"
-    !! (".\**\*.csproj")
-        |> myBuildConfig "" "Rebuild"
-        |> Log "AppBuild-Output: "
-)
-
-Target "Building Unit Tests" (fun _ ->
-
-    trace "Building Unit Tests"
-    !! (".\**\*.UnitTests.csproj")
-      |> myBuildConfig "" "Rebuild"
-      |> Log "AppBuild-Output: "
-
-)
-
 Target "Build WebJob Project" ( fun _ ->
-    
-    let directoryinfo = FileSystemHelper.directoryInfo(@".\" @@ publishDirectory @@ "\..\WebJob")
-    let directory = directoryinfo.FullName
-    traceImportant directory
-    let properties = 
-                    [
-                        ("DeployOnBuild", "True");
-                        ("WebPublishMethod", "Package");
-                        ("SkipInvalidConfigurations", "true");
-                        ("PackageLocation", directory);
-                        ("ToolsVersion","14");
-                    ]
+    let buildMode = getBuildParamOrDefault "buildMode" "Debug"
 
-    !! (@".\**\*.WebJob.csproj")
-        |> MSBuildReleaseExt null properties "Build"
-        |> Log "Build-Output: "
+    if buildMode.ToLower().Equals("release") then
+        let directoryinfo = FileSystemHelper.directoryInfo(@".\" @@ publishDirectory @@ "\..\WebJob")
+        let directory = directoryinfo.FullName
+        traceImportant directory
+        let properties = 
+                        [
+                            ("DeployOnBuild", "True");
+                            ("WebPublishMethod", "Package");
+                            ("SkipInvalidConfigurations", "true");
+                            ("PackageLocation", directory);
+                            ("ToolsVersion","14");
+                        ]
+
+        !! (@".\**\*.WebJob.csproj")
+            |> MSBuildReleaseExt null properties "Build"
+            |> Log "Build-Output: "
     
 )
 
@@ -375,7 +349,7 @@ Target "Run NUnit Tests" (fun _ ->
                 })
 )
 
-Target "Cleaning Integration Tests" (fun _ ->
+Target "Cleaning Acceptance Tests" (fun _ ->
 
     trace "Cleaning Acceptance Tests"
     !! (".\**\*.AcceptanceTests.csproj")
@@ -384,9 +358,9 @@ Target "Cleaning Integration Tests" (fun _ ->
 
 )
 
-Target "Building Integration Tests" (fun _ ->
+Target "Building Acceptance Tests" (fun _ ->
 
-    trace "Building Integration Tests"
+    trace "Building Acceptance Tests"
     !! (".\**\*.AcceptanceTests.csproj")
       |> myBuildConfig "" "Rebuild"
       |> Log "AppBuild-Output: "
@@ -442,21 +416,21 @@ Target "Compile Views" (fun _ ->
 )
 
 
-Target "Clean Project" (fun _ ->
+Target "Clean Projects" (fun _ ->
 
-    trace "Clean Project"
+    trace "Clean Projects"
     
-    !! (@".\" + projectName + "\*.csproj")
+    !! (@".\**\*.csproj")
       |> myBuildConfig "" "Clean"
       |> Log "AppBuild-Output: "
 
 )
 
-Target "Build Project" (fun _ ->
+Target "Build Projects" (fun _ ->
 
-    trace "Building Project"
+    trace "Building Projects"
     
-    !! (@".\" + projectName + "\*.csproj")
+    !! (@".\**\*.csproj")
       |> myBuildConfig "" "Rebuild"
       |> Log "AppBuild-Output: "
 
@@ -515,12 +489,16 @@ Target "Create Nuget Package" (fun _ ->
 
     if testDirectory.ToLower() = "release" then
         let nupkgFiles = !! (currentDirectory + "/**/*.nuspec") 
-
-    
+        
         for nupkgFile in nupkgFiles do
             let fileInfo = fileSystemInfo(nupkgFile)
             let name = fileInfo.Name.Replace(fileInfo.Extension,"")
             
+            let mutable outputPath = FileSystemHelper.DirectoryName(fileInfo.FullName)
+
+            if FileSystemHelper.directoryExists(FileSystemHelper.DirectoryName(fileInfo.FullName) @@ nugetOutputDirectory) then
+                outputPath <- FileSystemHelper.DirectoryName(fileInfo.FullName) @@ nugetOutputDirectory
+                
             (fileInfo.FullName)
             |> NuGet (fun p -> 
                 {p with               
@@ -530,7 +508,7 @@ Target "Create Nuget Package" (fun _ ->
                     Description = name
                     Version = versionNumber
                     NoPackageAnalysis = true
-                    OutputPath = FileSystemHelper.DirectoryName(fileInfo.FullName) @@ nugetOutputDirectory
+                    OutputPath = outputPath
                     WorkingDir = FileSystemHelper.DirectoryName(fileInfo.FullName)
                     AccessKey = nugetAccessKey
                     Publish = System.Convert.ToBoolean(publishNuget)
@@ -539,32 +517,28 @@ Target "Create Nuget Package" (fun _ ->
 
 "Set version number"
    ==>"Set Solution Name"
-    ==>"Build Acceptance Solution"
-    ==>"Cleaning Integration Tests"
-    ==>"Building Integration Tests"
+   ==>"Clean Projects"
+   ==>"Build Projects"
+   ==>"Cleaning Acceptance Tests"
+   ==>"Building Acceptance Tests"
     //==>"Run Acceptance Tests"
 
 "Set version number"
    ==>"Set Solution Name"
    ==>"Update Assembly Info Version Numbers"
-   ==>"Clean Publish Directory"
-   ==>"Clean Build Directories" 
+   ==>"Clean Directories" 
+   ==>"Clean Projects"
    ==>"Build Projects"
-   ==>"Building Unit Tests"
    ==>"Run NUnit Tests"
-   ==>"Build Solution"
+   ==>"Build Cloud Projects"
    ==>"Build Database project"
    ==>"Build WebJob Project" 
    ==>"Publish Solution"  
    ==>"Compile Views"
    ==>"Create Nuget Package"
-   ==>"Zip Compiled Source"
-   ==>"Create Development Site in IIS"
-   ==>"Create Accceptance Test Site in IIS"
-
 
 "Set Solution Name"
     ==> "Build Database project"
     ==> "Publish Database project"
    
-RunTargetOrDefault  "Create Accceptance Test Site in IIS"
+RunTargetOrDefault  "Create Nuget Package"
