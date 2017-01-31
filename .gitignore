@@ -52,3 +52,4 @@ Fake.TestProject/packages/**/*.*
 Fake.TestProject/tools/**/*.*
 .fake/*.*
 Fake.TestProject/.fake/*.*
+Fake.TestProject/Publish/**/*.*

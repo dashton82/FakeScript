@@ -11,7 +11,7 @@ let findNuget = @"tools/nuget"
 RestorePackages()
 
 let nUnitToolPath = @"tools\NUnit.ConsoleRunner\tools\nunit3-console.exe"
-let xUnitToolPath = @"tools\Xunit\tools\xunit3.exe"//TODO
+let xUnitToolPath = @"tools\xunit.runner.console\tools\xunit.console.exe"
 let rootPublishDirectory = getBuildParamOrDefault "publishDirectory"  @"C:\CompiledSource"
 let testDirectory = getBuildParamOrDefault "buildMode" "Debug"
 let myBuildConfig = if testDirectory = "Release" then MSBuildRelease else MSBuildDebug
@@ -365,27 +365,27 @@ Target "Run XUnit Tests" (fun _ ->
         testDlls  |>
             Fake.Testing.XUnit2.xUnit2(fun p ->
             {p with
-                ToolPath = nUnitToolPath;
+                ToolPath = xUnitToolPath;
                 ShadowCopy = false;
-                XmlOutputPath = [("TestResult.xml;format=")];
+                XmlOutputPath = Some ("TestResultXUnit.xml");
                 })
 
 )
 
-Target "Run Jasmine Tests" (fun _ ->
-    trace "Run Jasmine Tests"
-
-    let result =
-            ExecProcess (fun info ->
-                info.FileName <- ("C:/Windows/Microsoft.NET/Framework/v4.0.30319/aspnet_compiler.exe")
-                info.Arguments <- @"-v \" + folderPrecompiled + " -p . " + directoryOutput
-                info.WorkingDirectory <- publishDirectory
-            ) (System.TimeSpan.FromMinutes 10.)
-        
-
-
-     if result <> 0 then failwith "Failed to run Jasmine Tests"
-)
+//Target "Run Jasmine Tests" (fun _ ->
+//    trace "Run Jasmine Tests"
+//
+//    let result =
+//            ExecProcess (fun info ->
+//                info.FileName <- ("C:/Windows/Microsoft.NET/Framework/v4.0.30319/aspnet_compiler.exe")
+//                info.Arguments <- @"-v \" + folderPrecompiled + " -p . " + directoryOutput
+//                info.WorkingDirectory <- publishDirectory
+//            ) (System.TimeSpan.FromMinutes 10.)
+//        
+//
+//
+//    if result <> 0 then failwith "Failed to run Jasmine Tests"
+//)
 
 Target "Cleaning Acceptance Tests" (fun _ ->
 
@@ -568,6 +568,7 @@ Target "Create Nuget Package" (fun _ ->
    ==>"Clean Projects"
    ==>"Build Projects"
    ==>"Run NUnit Tests"
+   ==>"Run XUnit Tests"
    ==>"Build Cloud Projects"
    ==>"Build Database project"
    ==>"Build WebJob Project" 
