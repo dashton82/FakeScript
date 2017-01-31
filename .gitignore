@@ -47,3 +47,7 @@ tools/FAKE/**/*.*
 tools/**/*.*
 packages/**/*.*
 CreateNugetPackage.bat
+Fake.TestProject/tools/FAKE/**/*.*
+Fake.TestProject/packages/**/*.*
+Fake.TestProject/tools/**/*.*
+.fake/*.*
