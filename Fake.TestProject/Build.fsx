@@ -12,6 +12,9 @@ RestorePackages()
 
 let nUnitToolPath = @"tools\NUnit.ConsoleRunner\tools\nunit3-console.exe"
 let xUnitToolPath = @"tools\xunit.runner.console\tools\xunit.console.exe"
+let phantomJsPath = @"tools\PhantomJS\tools\phantomjs\phantomjs.exe"
+let jasmineRunnerPath = @"tools\jasmine\jasminerunner.js"
+//let jasmineRunnerPath = @"tools\jasmine\phantomjs-testrunner.js"
 let rootPublishDirectory = getBuildParamOrDefault "publishDirectory"  @"C:\CompiledSource"
 let testDirectory = getBuildParamOrDefault "buildMode" "Debug"
 let myBuildConfig = if testDirectory = "Release" then MSBuildRelease else MSBuildDebug
@@ -158,6 +161,8 @@ Target "Clean Directories" (fun _ ->
     files <- files.And("./**/**/release/*.*")
     files <- files.And("./**/obj/*.*")
     FileHelper.DeleteFile("./TestResult.xml")
+    FileHelper.DeleteFile("./TestResultXUnit.xml")
+    FileHelper.DeleteFile("./TestResultJasmine.xml")
     
     let directoryNames = [| for file in files -> fileInfo(file).Directory.FullName |]
 
@@ -372,20 +377,33 @@ Target "Run XUnit Tests" (fun _ ->
 
 )
 
-//Target "Run Jasmine Tests" (fun _ ->
-//    trace "Run Jasmine Tests"
-//
-//    let result =
-//            ExecProcess (fun info ->
-//                info.FileName <- ("C:/Windows/Microsoft.NET/Framework/v4.0.30319/aspnet_compiler.exe")
-//                info.Arguments <- @"-v \" + folderPrecompiled + " -p . " + directoryOutput
-//                info.WorkingDirectory <- publishDirectory
-//            ) (System.TimeSpan.FromMinutes 10.)
-//        
-//
-//
-//    if result <> 0 then failwith "Failed to run Jasmine Tests"
-//)
+Target "Run Jasmine Tests" (fun _ ->
+    trace "Run Jasmine Tests"
+
+    let subdirs = FileSystemHelper.directoryInfo(currentDirectory).EnumerateDirectories("*.JasmineTests")
+        
+    let mutable jamsineTestDir = ""
+
+    for directs in subdirs do
+        trace directs.Name
+        let dirExists = directs.Name.Contains("JasmineTests")
+        if(dirExists) then
+            jamsineTestDir <- directs.FullName
+
+    let specRunnerFile = TryFindFirstMatchingFile "SpecRunner.html" (jamsineTestDir)
+
+    if specRunnerFile.IsNone then
+        trace "Skipping Jasmine Tests"
+    else  
+        let result =
+                ExecProcess (fun info ->
+                    info.FileName <- phantomJsPath
+                    info.Arguments <- jasmineRunnerPath + @" file:///" + specRunnerFile.Value.Replace(@"\",@"/")
+                    info.RedirectStandardError <- true
+                ) (System.TimeSpan.FromMinutes 10.)
+        
+        if result <> 0 then failwith "Failed to run Jasmine Tests"
+)
 
 Target "Cleaning Acceptance Tests" (fun _ ->
 
@@ -569,6 +587,7 @@ Target "Create Nuget Package" (fun _ ->
    ==>"Build Projects"
    ==>"Run NUnit Tests"
    ==>"Run XUnit Tests"
+   ==>"Run Jasmine Tests"
    ==>"Build Cloud Projects"
    ==>"Build Database project"
    ==>"Build WebJob Project" 

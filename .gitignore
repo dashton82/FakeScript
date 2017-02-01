@@ -53,3 +53,4 @@ Fake.TestProject/tools/**/*.*
 .fake/*.*
 Fake.TestProject/.fake/*.*
 Fake.TestProject/Publish/**/*.*
+Fake.TestProject/tools/PhantomJS/tools/phantomjs/ChangeLog
