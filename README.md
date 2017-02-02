@@ -26,7 +26,23 @@ Which will stop the creation of the two sites on the build server
 A publishing profile is required to be able to create the test version of the site. The format for this name should be [SolutionName]PublishProfile.
 
 ### Unit Tests
-Unit test projects should be named "*.UnitTests" these will then automatically be picked up. A Single TestResult.xml file is then created at the same level of the solution
+Unit test projects using NUnit should be named "*.UnitTests" these will then automatically be picked up. A Single TestResult.xml file is then created at the same level of the solution. For XUnitTests, projects should be named "*.XUnitTests". This will produce a separate xml result file TestResultXunit.xml
+
+### Jasmine Tests
+Jasmine tests will be ran if contained in a project name "*.JasmineTests". It will then look for the SpecRunner.html file in the route of this project. PhantomJs is downloaded as part of the bat file and a runner is used from the tools directory. It is possible to enable NUnit formatting of results file, using [larrymyers/jasminereporters](https://github.com/larrymyers/jasmine-reporters) to do this you need to add:
+
+```
+<script src="lib/jasmine/jasmine-nunitreporter.js"></script>
+<script>
+        jasmine.getEnv().addReporter(new jasmineReporters.NUnitXmlReporter({ savePath: '', filename :'TestResultJasmine.xml'}));
+</script>
+```
+
+And then change the build script to use the phantomjs-testrunner.js as shown below
+```
+let jasmineRunnerPath = @"tools\jasmine\phantomjs-testrunner.js"
+```
+Example shown in solution
 
 ### Cloud Services
 Cloud projects will automatically be created if the project type exists.
