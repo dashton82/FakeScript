@@ -65,7 +65,6 @@ _Coming Soon_
 ## Limitations
 
 * Will only Work for one solution file
-* Currently Only Support for NUnit Tests
 * SpecFlow test support with NUnit
 * IIS Publishing requires Local IIS to be installed - Port 5050 for compiled views, port 7070 for development version
 
