@@ -16,9 +16,9 @@ First parameter is buildType, simply pass "Debug" or "Release"
 ````
 ..RunBuild.bat "Release"
 ````
-Second Parameter is for the Target, if running on CI, it is advisalbe to change it to
+Second Parameter is for the Target
 ````
-..RunBuild.bat "Release" "Zip Compiled Source"
+..RunBuild.bat "Release" "Publish Solution"
 ````
 Which will stop the creation of the two sites on the build server
 
