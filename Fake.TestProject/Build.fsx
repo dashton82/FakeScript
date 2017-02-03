@@ -160,6 +160,8 @@ Target "Clean Directories" (fun _ ->
     files <- files.And("./**/bin/**/*.*")
     files <- files.And("./**/**/release/*.*")
     files <- files.And("./**/obj/*.*")
+    files <- files.ButNot("./**/node_modules/*.*")
+    files <- files.ButNot("./**/node_modules/**/*.*")
     FileHelper.DeleteFile("./TestResult.xml")
     FileHelper.DeleteFile("./TestResultXUnit.xml")
     FileHelper.DeleteFile("./TestResultJasmine.xml")
