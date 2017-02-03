@@ -12,8 +12,8 @@ RestorePackages()
 
 let nUnitToolPath = @"tools\NUnit.ConsoleRunner\tools\nunit3-console.exe"
 let xUnitToolPath = @"tools\xunit.runner.console\tools\xunit.console.exe"
-let phantomJsPath = @"tools\PhantomJS\tools\phantomjs\phantomjs.exe"
-let jasmineRunnerPath = @"tools\jasmine\jasminerunner.js"
+let phantomJsPath = currentDirectory @@ @"tools\PhantomJS\tools\phantomjs\phantomjs.exe"
+let jasmineRunnerPath = currentDirectory @@ @"tools\jasmine\jasminerunner.js"
 //let jasmineRunnerPath = @"tools\jasmine\phantomjs-testrunner.js"
 let rootPublishDirectory = getBuildParamOrDefault "publishDirectory"  @"C:\CompiledSource"
 let testDirectory = getBuildParamOrDefault "buildMode" "Debug"
