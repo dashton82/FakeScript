@@ -46,9 +46,11 @@
     <Content Include="lib\jasmine-2.5.2\boot.js" />
     <Content Include="lib\jasmine-2.5.2\console.js" />
     <Content Include="lib\jasmine-2.5.2\jasmine-html.js" />
+    <Content Include="lib\jasmine-2.5.2\jasmine-nunitreporter.js" />
     <Content Include="lib\jasmine-2.5.2\jasmine.css" />
     <Content Include="lib\jasmine-2.5.2\jasmine.js" />
     <Content Include="lib\jasmine-2.5.2\jasmine_favicon.png" />
+    <Content Include="lib\jasmine-2.5.2\phantomjs-testrunner.js" />
     <Content Include="SpecRunner.html" />
     <Content Include="spec\PlayerSpec.js" />
     <Content Include="spec\SpecHelper.js" />
