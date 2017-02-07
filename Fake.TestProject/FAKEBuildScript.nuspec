@@ -11,7 +11,7 @@
   <releaseNotes>@releaseNotes@</releaseNotes>
   <licenseUrl>https://github.com/dashton82/FakeScript</licenseUrl>
   <projectUrl>https://github.com/dashton82/FakeScript</projectUrl>
-  <tags>Build CI FAKE .NET</tags>
+  <tags>build fake f# CI .NET</tags>
   @references@
   </metadata>
   <files>
