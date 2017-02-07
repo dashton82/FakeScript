@@ -4,7 +4,23 @@ param($installPath, $toolsPath, $package)
 
 New-Item -ItemType Directory -Force -Path "$installPath\..\..\Tools\Nuget"
 
-Copy-Item "$installPath\tools\temp\*.*" -destination "$installPath\..\..\" -recurse
+$Source = "$installPath\tools\temp\"
+$Destination = "$installPath\..\..\"
+$ExcludeItems = @()
+
+if (Test-Path "$Destination\Build.fsx")
+{
+    $ExcludeItems += "Build.fsx"
+}
+if (Test-Path "$Destination\CustomTargets.fsx")
+{
+    $ExcludeItems += "CustomTargets.fsx"
+}
+
+Write-Host "Excluding:"
+Write-Host $ExcludeItems
+
+Copy-Item "$Source/*.*" -Destination $Destination -Exclude $ExcludeItems
 Copy-Item "$installPath\..\**\Tools\NuGet.exe" -destination "$installPath\..\..\Tools\Nuget" -recurse
 
 Remove-Item "$installPath\tools\temp\" -recurse 
