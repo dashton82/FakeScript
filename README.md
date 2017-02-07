@@ -1,4 +1,8 @@
-# FakeScript      [![Build status](https://ci.appveyor.com/api/projects/status/dd41b1ebr4ctap4r/branch/master?svg=true)](https://ci.appveyor.com/project/dashton82/fakescript/branch/master)
+# FakeScript      
+
+[![Build status](https://ci.appveyor.com/api/projects/status/dd41b1ebr4ctap4r/branch/master?svg=true)](https://ci.appveyor.com/project/dashton82/fakescript/branch/master)
+
+[![NuGet Badge](https://buildstats.info/nuget/FAKEBuildScript)](https://www.nuget.org/packages/FAKEBuildScript)
 
 ## Install
 
