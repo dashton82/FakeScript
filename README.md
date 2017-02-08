@@ -16,12 +16,29 @@ After installed, you will have in the root of your solution:
 
 - RunBuild.bat, 
 - Build.fsx 
+- DefaultTargets.fsx
+- CustomTargets.fsx
 - Tools\Nuget\Nuget.exe
 - Tools\Jasmine\Jasminerunner.js
 - Tools\Jasmine\Jasminerunner-nunit.js
 - Tools\Jasmine\phantomjs-testrunner.js
 
 Run __RunBuild.Bat__ from the command line. This will automatically detect the solution file in your folder. This will build all projects in the solution, by default this is done in Debug configuration.
+
+
+### Custom Build Steps
+By default the DefaultTargets.fsx is overwritten with every update of the nuget package. The Build.fsx and CustomTargets.fsx are not and are intended for your build usages cusomisation. Within CustomTargets you can put any addtional operations that you wish to be ran, these will then be loaded within Build.fsx. Build.fsx can be modifed so that you can ammend the build like shown below:
+```
+"Set version number"
+   ==>"Set Solution Name"
+   ==>"Update Assembly Info Version Numbers"
+   ==>"Clean Directories" 
+   ==>"Clean Projects"
+   ==>"Build Projects"
+   ==>"Run XUnit Tests"
+```
+The only ones that are core to other steps are the first two. These are required for setting working directories and determining if certain steps can be ran.
+
 
 ### Command Line options
 First parameter is buildType, simply pass "Debug" or "Release"
