@@ -34,5 +34,9 @@ open Fake
 "Set Solution Name"
     ==> "Build Database project"
     ==> "Publish Database project"
+
+"Set version number"
+    ==>"Set Solution Name"
+    ==> "Zip Compiled Source"
    
 RunTargetOrDefault  "Create Nuget Package"

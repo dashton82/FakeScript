@@ -33,10 +33,9 @@ Second Parameter is for the Target
 ````
 ..RunBuild.bat "Release" "Publish Solution"
 ````
-Which will stop the creation of the two sites on the build server
 
 ### Publishing Profile
-A publishing profile is required to be able to create the test version of the site. The format for this name should be [SolutionName]PublishProfile.
+A publishing profile is required to be able to create the test version of the site. The format for this name should be [SolutionName]PublishProfile, and must exist in a project named *.web.
 
 ### Unit Tests
 Unit test projects using NUnit should be named "*.UnitTests" these will then automatically be picked up. A Single TestResult.xml file is then created at the same level of the solution. For XUnitTests, projects should be named "*.XUnitTests". This will produce a separate xml result file TestResultXunit.xml
@@ -64,13 +63,16 @@ Cloud projects will automatically be created if the project type exists.
 Database projects can have the .dacpac files created, providing you have publish profile with the format Database.Publish.xml and the project name is *.Database. You also should make sure in your build configuration for the solution that this is not built as part of a Release build.
 
 ### Assemby Versioning
-Assembly versioning will work on your chosen CI - this should use the format buildVersion number and follow semantic versioning. You can then override the Major and Minor values through Environment Variables.
+Assembly versioning will work on your chosen CI - this should use the format buildVersion number and follow semantic versioning. You can then override the Major and Minor values through Environment Variables, BUILD_MAJORNUMBER and BUILD_MINORNUMBER.
 
 ### Zipping
-A zip file will be created of the compiled website, version number will be the same as mentioned above.
+A zip file can be created of the compiled website, version number will be the same as mentioned above. To do this call 
+```
+RunBuild.bat "Release" "Zip Compiled Source"
+```
 
 ### Azure Webjobs
-Azure webjobs can be built and packaged providing that the project name ends with .webjob.csproj. These will then be pacakged and added to the publish directory
+Azure webjobs can be built and packaged providing that the project name ends with .webjob.csproj. These will then be packaged and added to the publish directory
 
 ### DNX Support
 _Coming Soon_
@@ -79,7 +81,6 @@ _Coming Soon_
 
 * Will only Work for one solution file
 * SpecFlow test support with NUnit
-* IIS Publishing requires Local IIS to be installed - Port 5050 for compiled views, port 7070 for development version
 
 ## Contributions
 
