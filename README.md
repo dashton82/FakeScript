@@ -37,7 +37,7 @@ By default the DefaultTargets.fsx is overwritten with every update of the nuget 
    ==>"Build Projects"
    ==>"Run XUnit Tests"
 ```
-The only ones that are core to other steps are the first two. These are required for setting working directories and determining if certain steps can be ran.
+The only ones that are core to other steps are the first two. These are required for setting working directories and determining if certain steps can be run.
 
 
 ### Command Line options
