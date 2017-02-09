@@ -407,23 +407,6 @@ Target "Run Jasmine Tests" (fun _ ->
         if result <> 0 then failwith "Failed to run Jasmine Tests"
 )
 
-Target "Cleaning Acceptance Tests" (fun _ ->
-
-    trace "Cleaning Acceptance Tests"
-    !! (".\**\*.AcceptanceTests.csproj")
-      |> myBuildConfig "" "Clean"
-      |> Log "AppBuild-Output: "
-
-)
-
-Target "Building Acceptance Tests" (fun _ ->
-
-    trace "Building Acceptance Tests"
-    !! (".\**\*.AcceptanceTests.csproj")
-      |> myBuildConfig "" "Rebuild"
-      |> Log "AppBuild-Output: "
-
-)
 
 Target "Run Acceptance Tests" (fun _ ->
 
@@ -471,17 +454,6 @@ Target "Compile Views" (fun _ ->
         if result <> 0 then failwith "Failed to compile views"
     else
         trace "skipping compiling views"
-)
-
-
-Target "Clean Projects" (fun _ ->
-
-    trace "Clean Projects"
-    
-    !! (@".\**\*.csproj")
-      |> myBuildConfig "" "Clean"
-      |> Log "AppBuild-Output: "
-
 )
 
 Target "Build Projects" (fun _ ->

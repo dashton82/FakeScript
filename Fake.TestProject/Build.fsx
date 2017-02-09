@@ -9,9 +9,8 @@ open Fake
 
 "Set version number"
    ==>"Set Solution Name"
-   ==>"Clean Projects"
+   ==>"Clean Directories"
    ==>"Build Projects"
-   ==>"Cleaning Acceptance Tests"
    ==>"Building Acceptance Tests"
     //==>"Run Acceptance Tests"
 
@@ -19,7 +18,6 @@ open Fake
    ==>"Set Solution Name"
    ==>"Update Assembly Info Version Numbers"
    ==>"Clean Directories" 
-   ==>"Clean Projects"
    ==>"Build Projects"
    ==>"Run NUnit Tests"
    ==>"Run XUnit Tests"
