@@ -383,28 +383,33 @@ Target "Run Jasmine Tests" (fun _ ->
     trace "Run Jasmine Tests"
 
     let subdirs = FileSystemHelper.directoryInfo(currentDirectory).EnumerateDirectories("*.JasmineTests")
-        
+    
     let mutable jamsineTestDir = ""
 
     for directs in subdirs do
-        trace directs.Name
-        let dirExists = directs.Name.Contains("JasmineTests")
-        if(dirExists) then
-            jamsineTestDir <- directs.FullName
+        if (directs.Exists) then
+            trace directs.Name
+            let dirExists = directs.Name.Contains("JasmineTests")
+            if(dirExists) then
+                jamsineTestDir <- directs.FullName
 
-    let specRunnerFile = TryFindFirstMatchingFile "SpecRunner.html" (jamsineTestDir)
 
-    if specRunnerFile.IsNone then
+    if jamsineTestDir = "" then
         trace "Skipping Jasmine Tests"
-    else  
-        let result =
-                ExecProcess (fun info ->
-                    info.FileName <- phantomJsPath
-                    info.Arguments <- jasmineRunnerPath + @" file:///" + specRunnerFile.Value.Replace(@"\",@"/")
-                    info.RedirectStandardError <- true
-                ) (System.TimeSpan.FromMinutes 10.)
+    else
+        let specRunnerFile = TryFindFirstMatchingFile "SpecRunner.html" (jamsineTestDir)
+
+        if specRunnerFile.IsNone then
+            trace "Skipping Jasmine Tests"
+        else  
+            let result =
+                    ExecProcess (fun info ->
+                        info.FileName <- phantomJsPath
+                        info.Arguments <- jasmineRunnerPath + @" file:///" + specRunnerFile.Value.Replace(@"\",@"/")
+                        info.RedirectStandardError <- true
+                    ) (System.TimeSpan.FromMinutes 10.)
         
-        if result <> 0 then failwith "Failed to run Jasmine Tests"
+            if result <> 0 then failwith "Failed to run Jasmine Tests"
 )
 
 

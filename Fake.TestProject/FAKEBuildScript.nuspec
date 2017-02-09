@@ -2,7 +2,7 @@
 <package xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">    
   <id>FAKEBuildScript</id>
-  <version>1.2.1</version>
+  <version>1.2.2</version>
   <authors>Daniel Ashton</authors>
   <owners>Daniel Ashton</owners>
   <summary>Simple Script used for building .NET projects locally and on a CI</summary>
