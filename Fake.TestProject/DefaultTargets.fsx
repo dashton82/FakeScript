@@ -424,6 +424,7 @@ Target "Run Acceptance Tests" (fun _ ->
             {p with
                 ToolPath = nUnitToolPath;
                 StopOnError = false;
+                Agents = Some 1;                
                 ResultSpecs = [("TestResult.xml;format=" + nunitTestFormat)];
                 })
 )
