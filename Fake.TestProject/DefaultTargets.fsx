@@ -467,6 +467,15 @@ Target "Build Projects" (fun _ ->
 
 )
 
+Target "Building Acceptance Tests" (fun _ ->
+
+    trace "Building Acceptance Tests"
+    !! (".\**\*.AcceptanceTests.csproj")
+      |> myBuildConfig "" "Rebuild"
+      |> Log "AppBuild-Output: "
+
+)
+
 Target "Zip Compiled Source" (fun _ ->
 
     if shouldPublishSite then
