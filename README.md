@@ -74,7 +74,7 @@ let jasmineRunnerPath = @"tools\jasmine\phantomjs-testrunner.js"
 Example shown in solution
 
 ### Cloud Services
-Cloud projects will automatically be created if the project type exists.
+Cloud projects will automatically be created if the project type exists. It is also possible to create multiple packages if within the cloud project folder you have a folder called Configuration . Within this you should place *.csdef files that differ from the default - this could include different vmsizes for example.
 
 ### Database Projects
 Database projects can have the .dacpac files created, providing you have publish profile with the format Database.Publish.xml and the project name is *.Database. You also should make sure in your build configuration for the solution that this is not built as part of a Release build.
