@@ -30,6 +30,8 @@ let isAutomationProject = getBuildParamOrDefault "AcceptanceTests" "false"
 let devWebsitePort = getBuildParamOrDefault "devport" "7071"
 let accWebsitePort = getBuildParamOrDefault "accport" "5051"
 
+let acceptanceTestPlayList = getBuildParamOrDefault "playList" "playlists/testfile.playlist"
+
 let mutable projectName = ""
 let mutable folderPrecompiled = @"\"+ projectName + ".Release_precompiled "
 let mutable publishDirectory = rootPublishDirectory @@ projectName
@@ -444,7 +446,8 @@ Target "Run Acceptance Tests" (fun _ ->
             {p with
                 ToolPath = nUnitToolPath;
                 StopOnError = false;
-                Agents = Some 1;                
+                Agents = Some 1;    
+                Testlist = acceptanceTestPlayList;
                 ResultSpecs = [("TestResult.xml;format=" + nunitTestFormat)];
                 })
 )
