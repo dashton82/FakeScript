@@ -30,7 +30,7 @@ let isAutomationProject = getBuildParamOrDefault "AcceptanceTests" "false"
 let devWebsitePort = getBuildParamOrDefault "devport" "7071"
 let accWebsitePort = getBuildParamOrDefault "accport" "5051"
 
-let acceptanceTestPlayList = getBuildParamOrDefault "playList" "playlists/testfile.playlist"
+let acceptanceTestPlayList = getBuildParamOrDefault "playList" ""
 
 let mutable projectName = ""
 let mutable folderPrecompiled = @"\"+ projectName + ".Release_precompiled "
