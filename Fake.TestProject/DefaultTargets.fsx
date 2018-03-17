@@ -43,6 +43,8 @@ let mutable versionNumber = getBuildParamOrDefault "versionNumber" "1.0.0.0"
 
 let mutable solutionFilePresent = true
 
+let mutable directoryInfoWebPublishLocation = null
+
 Target "Set version number" (fun _ ->
     if publishNuget.ToLower() = "false" then
         let assemblyMajorNumber = environVarOrDefault "BUILD_MAJORNUMBER" "1" 
@@ -86,6 +88,8 @@ Target "Set Solution Name" (fun _ ->
             for directory in subDirectories do
                 if shouldPublishSite = false then 
                     shouldPublishSite <- fileExists((directory.FullName @@ @"Properties\PublishProfiles\" @@ publishingProfile + ".pubxml"))
+                    if shouldPublishSite = true then
+                        directoryInfoWebPublishLocation <- directory
                 
         else
             shouldPublishSite <- false
@@ -260,8 +264,7 @@ Target "Publish Solution"(fun _ ->
                             ("DeployOnBuild","True");
                             ("ToolsVersion","14");
                         ]
-
-        !! (@"./" + projectName + ".Web/" + projectName + ".Web.csproj")
+        !! (@"./" + directoryInfoWebPublishLocation.Name + "/*.csproj")
             |> MSBuildReleaseExt null properties "Build"
             |> Log "Build-Output: "
     else
