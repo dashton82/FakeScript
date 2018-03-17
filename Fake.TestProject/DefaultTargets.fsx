@@ -38,7 +38,6 @@ let mutable publishDirectory = rootPublishDirectory @@ projectName
 let mutable publishingProfile = projectName + "PublishProfile"
 let mutable shouldPublishSite = false
 let mutable shouldCreateDbProject = false
-let mutable sqlPublishFile = ""
 
 let mutable versionNumber = getBuildParamOrDefault "versionNumber" "1.0.0.0"
 
@@ -64,10 +63,6 @@ Target "Set version number" (fun _ ->
 
 Target "Set Solution Name" (fun _ ->
     
-    let directoryHelper = FileSystemHelper.directoryInfo(currentDirectory).Name
-
-    
-
     let mutable solutionNameToMatch = ""
     if isAutomationProject.ToLower() = "false" then 
         solutionNameToMatch <- "*.sln" 
@@ -164,6 +159,7 @@ Target "Clean Directories" (fun _ ->
     files <- files.And("./**/obj/*.*")
     files <- files.ButNot("./**/node_modules/*.*")
     files <- files.ButNot("./**/node_modules/**/*.*")
+    files <- files.ButNot("./**/release/*.cshtml")
     FileHelper.DeleteFile("./TestResult.xml")
     FileHelper.DeleteFile("./TestResultXUnit.xml")
     FileHelper.DeleteFile("./TestResultJasmine.xml")
