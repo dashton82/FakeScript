@@ -11,7 +11,7 @@ let findNuget = @"tools/nuget"
 RestorePackages()
 
 let nUnitToolPath = @"tools\NUnit.ConsoleRunner\tools\nunit3-console.exe"
-let xUnitToolPath = @"tools\xunit.runner.console\tools\xunit.console.exe"
+let xUnitToolPath = @"tools\xunit.runner.console\tools\net452\xunit.console.exe"
 let phantomJsPath = currentDirectory @@ @"tools\PhantomJS\tools\phantomjs\phantomjs.exe"
 let jasmineRunnerPath = currentDirectory @@ @"tools\jasmine\jasminerunner.js"
 //let jasmineRunnerPath = @"tools\jasmine\phantomjs-testrunner.js"
