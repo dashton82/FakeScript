@@ -10,8 +10,12 @@ let findNuget = @"tools/nuget"
 
 RestorePackages()
 
-let nUnitToolPath = @"tools\NUnit.ConsoleRunner\tools\nunit3-console.exe"
-let xUnitToolPath = @"tools\xunit.runner.console\tools\net452\xunit.console.exe"
+let nUnitRunner = "nunit3-console.exe"
+let xUnitRunner = "xunit.console.exe"
+let mutable nUnitToolPath = @"tools\NUnit.ConsoleRunner\"
+let mutable xUnitToolPath = @"tools\xunit.runner.console\"
+let mutable nUnitRunnerLocation = "";
+let mutable xUnitRunnerLocation = "";
 let phantomJsPath = currentDirectory @@ @"tools\PhantomJS\tools\phantomjs\phantomjs.exe"
 let jasmineRunnerPath = currentDirectory @@ @"tools\jasmine\jasminerunner.js"
 //let jasmineRunnerPath = @"tools\jasmine\phantomjs-testrunner.js"
@@ -63,6 +67,20 @@ Target "Set version number" (fun _ ->
     trace versionNumber
 )
 
+let GetToolPath(toolPath , toolName) = 
+    let mainDirectory = directoryInfo(currentDirectory @@ toolPath).GetDirectories()
+    let mutable toolLocation = ""
+    if mainDirectory.Length > 0 then
+        for directory in mainDirectory do
+            if toolLocation.Equals("") then
+                if fileExists(directory.FullName @@ toolName) then
+                    toolLocation <-(directory.FullName @@ toolName)
+                if toolLocation.Equals("") then
+                    for subDirectory in directory.GetDirectories() do
+                        if fileExists(subDirectory.FullName @@ toolName) then
+                            toolLocation <-(subDirectory.FullName @@ toolName)
+    toolLocation
+
 Target "Set Solution Name" (fun _ ->
     
     let mutable solutionNameToMatch = ""
@@ -73,6 +91,10 @@ Target "Set Solution Name" (fun _ ->
 
     let findSolutionFile = TryFindFirstMatchingFile "*.sln" currentDirectory
     
+    // check test runner paths exist
+    
+    nUnitRunnerLocation <- GetToolPath(nUnitToolPath, nUnitRunner)
+    xUnitRunnerLocation <- GetToolPath(xUnitToolPath, xUnitRunner)
     if findSolutionFile.IsSome then
         
         let solutionFileHelper = FileSystemHelper.fileInfo(findSolutionFile.Value)
@@ -354,7 +376,7 @@ Target "Run NUnit Tests" (fun _ ->
         testDlls  |>
             Fake.Testing.NUnit3.NUnit3 (fun p ->
             {p with
-                ToolPath = nUnitToolPath;
+                ToolPath = nUnitRunnerLocation;
                 ShadowCopy = false;
                 Framework = Testing.NUnit3.NUnit3Runtime.Net45;
                 ResultSpecs = [("TestResult.xml;format=" + nunitTestFormat)];
@@ -376,7 +398,7 @@ Target "Run XUnit Tests" (fun _ ->
         testDlls  |>
             Fake.Testing.XUnit2.xUnit2(fun p ->
             {p with
-                ToolPath = xUnitToolPath;
+                ToolPath = xUnitRunnerLocation;
                 ShadowCopy = false;
                 XmlOutputPath = Some ("TestResultXUnit.xml");
                 })
