@@ -55,3 +55,4 @@ Fake.TestProject/.fake/*.*
 Fake.TestProject/Publish/**/*.*
 Fake.TestProject/tools/PhantomJS/tools/phantomjs/ChangeLog
 Fake.TestProject/*.nupkg
+Fake.TestProject/.vs/**/*.*

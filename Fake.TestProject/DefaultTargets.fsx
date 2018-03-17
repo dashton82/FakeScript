@@ -11,7 +11,7 @@ let findNuget = @"tools/nuget"
 RestorePackages()
 
 let nUnitToolPath = @"tools\NUnit.ConsoleRunner\tools\nunit3-console.exe"
-let xUnitToolPath = @"tools\xunit.runner.console\tools\xunit.console.exe"
+let xUnitToolPath = @"tools\xunit.runner.console\tools\net452\xunit.console.exe"
 let phantomJsPath = currentDirectory @@ @"tools\PhantomJS\tools\phantomjs\phantomjs.exe"
 let jasmineRunnerPath = currentDirectory @@ @"tools\jasmine\jasminerunner.js"
 //let jasmineRunnerPath = @"tools\jasmine\phantomjs-testrunner.js"
@@ -38,11 +38,12 @@ let mutable publishDirectory = rootPublishDirectory @@ projectName
 let mutable publishingProfile = projectName + "PublishProfile"
 let mutable shouldPublishSite = false
 let mutable shouldCreateDbProject = false
-let mutable sqlPublishFile = ""
 
 let mutable versionNumber = getBuildParamOrDefault "versionNumber" "1.0.0.0"
 
 let mutable solutionFilePresent = true
+
+let mutable directoryInfoWebPublishLocation = null
 
 Target "Set version number" (fun _ ->
     if publishNuget.ToLower() = "false" then
@@ -64,10 +65,6 @@ Target "Set version number" (fun _ ->
 
 Target "Set Solution Name" (fun _ ->
     
-    let directoryHelper = FileSystemHelper.directoryInfo(currentDirectory).Name
-
-    
-
     let mutable solutionNameToMatch = ""
     if isAutomationProject.ToLower() = "false" then 
         solutionNameToMatch <- "*.sln" 
@@ -91,6 +88,8 @@ Target "Set Solution Name" (fun _ ->
             for directory in subDirectories do
                 if shouldPublishSite = false then 
                     shouldPublishSite <- fileExists((directory.FullName @@ @"Properties\PublishProfiles\" @@ publishingProfile + ".pubxml"))
+                    if shouldPublishSite = true then
+                        directoryInfoWebPublishLocation <- directory
                 
         else
             shouldPublishSite <- false
@@ -164,6 +163,7 @@ Target "Clean Directories" (fun _ ->
     files <- files.And("./**/obj/*.*")
     files <- files.ButNot("./**/node_modules/*.*")
     files <- files.ButNot("./**/node_modules/**/*.*")
+    files <- files.ButNot("./**/release/*.cshtml")
     FileHelper.DeleteFile("./TestResult.xml")
     FileHelper.DeleteFile("./TestResultXUnit.xml")
     FileHelper.DeleteFile("./TestResultJasmine.xml")
@@ -264,8 +264,7 @@ Target "Publish Solution"(fun _ ->
                             ("DeployOnBuild","True");
                             ("ToolsVersion","14");
                         ]
-
-        !! (@"./" + projectName + ".Web/" + projectName + ".Web.csproj")
+        !! (@"./" + directoryInfoWebPublishLocation.Name + "/*.csproj")
             |> MSBuildReleaseExt null properties "Build"
             |> Log "Build-Output: "
     else
@@ -277,14 +276,7 @@ Target "Build Database project"(fun _ ->
     
     if shouldCreateDbProject then
         trace "Publish Database project"
-
-        trace (@".\" + projectName + ".Database.Publish.xml")
-
-        let buildMode = getBuildParamOrDefault "buildMode" "Debug"
-        let directoryinfo = FileSystemHelper.directoryInfo(@".\" @@ publishDirectory)
-        let directory = directoryinfo.FullName
         
-
         let properties = 
                         [
                             ("DebugSymbols", "False");
@@ -306,11 +298,6 @@ Target "Publish Database project"(fun _ ->
         trace "Publish Database project"
 
         trace (@".\" + projectName + ".Database.Publish.xml")
-
-        let buildMode = getBuildParamOrDefault "buildMode" "Debug"
-        let directoryinfo = FileSystemHelper.directoryInfo(@".\" @@ publishDirectory)
-        let directory = directoryinfo.FullName
-        trace directory
 
         let properties = 
                         [
@@ -471,7 +458,7 @@ Target "Compile Views" (fun _ ->
                 info.FileName <- ("C:/Windows/Microsoft.NET/Framework/v4.0.30319/aspnet_compiler.exe")
                 info.Arguments <- @"-v \" + folderPrecompiled + " -p . " + directoryOutput
                 info.WorkingDirectory <- publishDirectory
-            ) (System.TimeSpan.FromMinutes 10.)
+            ) (System.TimeSpan.FromMinutes 30.)
         
 
 
