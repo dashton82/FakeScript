@@ -458,7 +458,7 @@ Target "Compile Views" (fun _ ->
                 info.FileName <- ("C:/Windows/Microsoft.NET/Framework/v4.0.30319/aspnet_compiler.exe")
                 info.Arguments <- @"-v \" + folderPrecompiled + " -p . " + directoryOutput
                 info.WorkingDirectory <- publishDirectory
-            ) (System.TimeSpan.FromMinutes 10.)
+            ) (System.TimeSpan.FromMinutes 30.)
         
 
 
