@@ -277,14 +277,7 @@ Target "Build Database project"(fun _ ->
     
     if shouldCreateDbProject then
         trace "Publish Database project"
-
-        trace (@".\" + projectName + ".Database.Publish.xml")
-
-        let buildMode = getBuildParamOrDefault "buildMode" "Debug"
-        let directoryinfo = FileSystemHelper.directoryInfo(@".\" @@ publishDirectory)
-        let directory = directoryinfo.FullName
         
-
         let properties = 
                         [
                             ("DebugSymbols", "False");
@@ -306,11 +299,6 @@ Target "Publish Database project"(fun _ ->
         trace "Publish Database project"
 
         trace (@".\" + projectName + ".Database.Publish.xml")
-
-        let buildMode = getBuildParamOrDefault "buildMode" "Debug"
-        let directoryinfo = FileSystemHelper.directoryInfo(@".\" @@ publishDirectory)
-        let directory = directoryinfo.FullName
-        trace directory
 
         let properties = 
                         [
