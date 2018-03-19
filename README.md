@@ -1,4 +1,4 @@
-# FakeScript      
+# FakeScript
 
 [![Build status](https://ci.appveyor.com/api/projects/status/dd41b1ebr4ctap4r/branch/master?svg=true)](https://ci.appveyor.com/project/dashton82/fakescript/branch/master)
 
@@ -12,10 +12,10 @@ Install-Package FAKEBuildScript
 ````
 ## Usage
 
-After installed, you will have in the root of your solution: 
+After installed, you will have in the root of your solution:
 
-- RunBuild.bat, 
-- Build.fsx 
+- RunBuild.bat,
+- Build.fsx
 - DefaultTargets.fsx
 - CustomTargets.fsx
 - Tools\Nuget\Nuget.exe
@@ -32,7 +32,7 @@ By default the DefaultTargets.fsx is overwritten with every update of the nuget 
 "Set version number"
    ==>"Set Solution Name"
    ==>"Update Assembly Info Version Numbers"
-   ==>"Clean Directories" 
+   ==>"Clean Directories"
    ==>"Clean Projects"
    ==>"Build Projects"
    ==>"Run XUnit Tests"
@@ -79,11 +79,12 @@ Cloud projects will automatically be created if the project type exists. It is a
 ### Database Projects
 Database projects can have the .dacpac files created, providing you have publish profile with the format Database.Publish.xml and the project name is *.Database. You also should make sure in your build configuration for the solution that this is not built as part of a Release build.
 
-### Assemby Versioning
+### Assembly Versioning
 Assembly versioning will work on your chosen CI - this should use the format buildVersion number and follow semantic versioning. You can then override the Major and Minor values through Environment Variables, BUILD_MAJORNUMBER and BUILD_MINORNUMBER.
+Alternatively, if your CI build number is already dot-formatted (Major.Minor.Patch) this will be used for assembly and nuget versioning instead.
 
 ### Zipping
-A zip file can be created of the compiled website, version number will be the same as mentioned above. To do this call 
+A zip file can be created of the compiled website, version number will be the same as mentioned above. To do this call
 ```
 RunBuild.bat "Release" "Zip Compiled Source"
 ```
