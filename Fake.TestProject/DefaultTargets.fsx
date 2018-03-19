@@ -51,12 +51,13 @@ let mutable directoryInfoWebPublishLocation = null
 
 Target "Set version number" (fun _ ->
     if publishNuget.ToLower() = "false" then
-        let assemblyMajorNumber = environVarOrDefault "BUILD_MAJORNUMBER" "1" 
-        let assemblyMinorNumber = environVarOrDefault "BUILD_MINORNUMBER" "0" 
+        let assemblyMajorNumber = environVarOrDefault "BUILD_MAJORNUMBER" "1"
+        let assemblyMinorNumber = environVarOrDefault "BUILD_MINORNUMBER" "0"
 
         if testDirectory.ToLower() = "release" then
-            versionNumber <- buildVersion
-            if versionNumber.ToLower() <> "localbuild" then
+            if buildVersion.Contains(".") then
+                versionNumber <- buildVersion
+            else if versionNumber.ToLower() <> "localbuild" then
                 versionNumber <- sprintf  @"%s.%s.0.%s" assemblyMajorNumber assemblyMinorNumber buildVersion
             else
                 versionNumber <- "1.0.0.0"
@@ -67,7 +68,7 @@ Target "Set version number" (fun _ ->
     trace versionNumber
 )
 
-let GetToolPath(toolPath , toolName) = 
+let GetToolPath(toolPath , toolName) =
     let mainDirectory = directoryInfo(currentDirectory @@ toolPath).GetDirectories()
     let mutable toolLocation = ""
     if mainDirectory.Length > 0 then
@@ -82,42 +83,42 @@ let GetToolPath(toolPath , toolName) =
     toolLocation
 
 Target "Set Solution Name" (fun _ ->
-    
+
     let mutable solutionNameToMatch = ""
-    if isAutomationProject.ToLower() = "false" then 
-        solutionNameToMatch <- "*.sln" 
-    else 
+    if isAutomationProject.ToLower() = "false" then
+        solutionNameToMatch <- "*.sln"
+    else
         solutionNameToMatch <- "*Automation.sln"
 
     let findSolutionFile = TryFindFirstMatchingFile "*.sln" currentDirectory
-    
+
     // check test runner paths exist
-    
+
     nUnitRunnerLocation <- GetToolPath(nUnitToolPath, nUnitRunner)
     xUnitRunnerLocation <- GetToolPath(xUnitToolPath, xUnitRunner)
     if findSolutionFile.IsSome then
-        
+
         let solutionFileHelper = FileSystemHelper.fileInfo(findSolutionFile.Value)
-            
+
         projectName <- solutionFileHelper.Name.Replace(solutionFileHelper.Extension, "")
         folderPrecompiled <- sprintf @"\%s.%s_precompiled " projectName testDirectory
         publishDirectory <- rootPublishDirectory @@  projectName
         publishingProfile <- projectName + "PublishProfile"
 
         let subDirectories = directoryInfo(currentDirectory).GetDirectories()
-    
-        if subDirectories.Length > 0 then 
+
+        if subDirectories.Length > 0 then
             for directory in subDirectories do
-                if shouldPublishSite = false then 
+                if shouldPublishSite = false then
                     shouldPublishSite <- fileExists((directory.FullName @@ @"Properties\PublishProfiles\" @@ publishingProfile + ".pubxml"))
                     if shouldPublishSite = true then
                         directoryInfoWebPublishLocation <- directory
-                
+
         else
             shouldPublishSite <- false
 
         let subdirs = FileSystemHelper.directoryInfo(currentDirectory).EnumerateDirectories("*.Database")
-        
+
         let mutable databaseDir = ""
 
         for directs in subdirs do
@@ -146,13 +147,13 @@ Target "Update Assembly Info Version Numbers"(fun _ ->
         trace "Update Assembly Info Version Numbers"
         BulkReplaceAssemblyInfoVersions(currentDirectory) (fun p ->
                 {p with
-                    AssemblyFileVersion = versionNumber 
-                    AssemblyVersion = versionNumber 
+                    AssemblyFileVersion = versionNumber
+                    AssemblyVersion = versionNumber
                     })
 )
 
 Target "Clean Directories" (fun _ ->
-    
+
     if FileHelper.TestDir(rootPublishDirectory) then
         FileHelper.CleanDir(rootPublishDirectory)
     else
@@ -163,7 +164,7 @@ Target "Clean Directories" (fun _ ->
         FileHelper.CleanDir(publishDirectory)
     else
         FileHelper.CreateDir(publishDirectory)
-    
+
 
     if FileHelper.TestDir(publishDirectory) then
         FileHelper.CleanDir(publishDirectory)
@@ -189,7 +190,7 @@ Target "Clean Directories" (fun _ ->
     FileHelper.DeleteFile("./TestResult.xml")
     FileHelper.DeleteFile("./TestResultXUnit.xml")
     FileHelper.DeleteFile("./TestResultJasmine.xml")
-    
+
     let directoryNames = [| for file in files -> fileInfo(file).Directory.FullName |]
 
     FileHelper.DeleteDirs(Seq.distinct(directoryNames)) |> ignore
@@ -201,26 +202,26 @@ Target "Build DNX Project"(fun _ ->
     trace "Build DNX PRoject"
     let dnuDir = userPath @@ @"\.dnx\runtimes\dnx-clr-win-x86.1.0.0-rc1-update1\bin\dnu.cmd"
     trace dnuDir
-        
+
     let result =
         ExecProcess (fun info ->
             info.FileName <- dnuDir
             info.Arguments <- @"publish .\src\MvcPOC --out .\WR\Publish --configuration Release --runtime dnx-clr-win-x86.1.0.0-rc1-update1"
             info.WorkingDirectory <- rootPublishDirectory @@ @"..\..\"
         ) (System.TimeSpan.FromMinutes 10.)
-        
+
     if result <> 0 then failwith "Failed to build DNX project"
 
 )
-                             
+
 
 Target "Build Cloud Projects"(fun _ ->
     let buildMode = getBuildParamOrDefault "buildMode" "Debug"
 
     if solutionFilePresent && buildMode.ToLower().Equals("release") then
-        
+
         let fileIncludes = !! ("./**/Configuration/ServiceDefinition.*.csdef")
-        
+
         let seqFileIncludes : seq<string> = Seq.cast fileIncludes
 
         if (Seq.length seqFileIncludes <> 0) then
@@ -242,21 +243,21 @@ Target "Build Cloud Projects"(fun _ ->
                     FileHelper.MoveFile targetFile.DirectoryName fileRename
 
                 if configurationName.ToUpper() <> "LOCAL" then
-                    let properties = 
+                    let properties =
                             [
                                 ("TargetProfile",configurationName);
                                 ("OutputPath",@"bin/" @@ configurationName);
-                            ]    
-            
+                            ]
+
                     !! (@"./" + directory + "/../*.ccproj")
                         |> MSBuildReleaseExt null properties "Publish"
                         |> Log "Build-Output: "
         else
-            let properties = 
+            let properties =
                             [
                                 ("TargetProfile","cloud");
                                 ("OutputPath",@"bin/");
-                            ]  
+                            ]
             !! (@".\**\*.ccproj")
                         |> MSBuildReleaseExt null properties "Publish"
                         |> Log "Build-Output: "
@@ -266,7 +267,7 @@ Target "Build Cloud Projects"(fun _ ->
 
 
 Target "Publish Solution"(fun _ ->
-    
+
 
     if shouldPublishSite then
 
@@ -277,7 +278,7 @@ Target "Publish Solution"(fun _ ->
         let directory = directoryinfo.FullName
         trace directory
 
-        let properties = 
+        let properties =
                         [
                             ("DebugSymbols", "False");
                             ("Configuration", buildMode);
@@ -294,12 +295,12 @@ Target "Publish Solution"(fun _ ->
 )
 
 Target "Build Database project"(fun _ ->
-    
-    
+
+
     if shouldCreateDbProject then
         trace "Publish Database project"
-        
-        let properties = 
+
+        let properties =
                         [
                             ("DebugSymbols", "False");
                             ("SqlPublishProfilePath", @".\Database.Publish.xml");
@@ -315,13 +316,13 @@ Target "Build Database project"(fun _ ->
 )
 
 Target "Publish Database project"(fun _ ->
-    
+
     if shouldCreateDbProject then
         trace "Publish Database project"
 
         trace (@".\" + projectName + ".Database.Publish.xml")
 
-        let properties = 
+        let properties =
                         [
                             ("DebugSymbols", "False");
                             ("TargetDatabaseName", "Database");
@@ -346,7 +347,7 @@ Target "Build WebJob Project" ( fun _ ->
         let directoryinfo = FileSystemHelper.directoryInfo(@".\" @@ publishDirectory @@ "\..\WebJob")
         let directory = directoryinfo.FullName
         traceImportant directory
-        let properties = 
+        let properties =
                         [
                             ("DeployOnBuild", "True");
                             ("WebPublishMethod", "Package");
@@ -358,7 +359,7 @@ Target "Build WebJob Project" ( fun _ ->
         !! (@".\**\*.WebJob.csproj")
             |> MSBuildReleaseExt null properties "Build"
             |> Log "Build-Output: "
-    
+
 )
 
 Target "Run NUnit Tests" (fun _ ->
@@ -367,8 +368,8 @@ Target "Run NUnit Tests" (fun _ ->
 
     let mutable shouldRunTests = false
 
-    let testDlls = !! ("./*.UnitTests/bin/" + testDirectory + "/*.UnitTests.dll") 
-    
+    let testDlls = !! ("./*.UnitTests/bin/" + testDirectory + "/*.UnitTests.dll")
+
     for testDll in testDlls do
         shouldRunTests <- true
 
@@ -389,7 +390,7 @@ Target "Run XUnit Tests" (fun _ ->
 
     let mutable shouldRunTests = false
 
-    let testDlls = !! ("./*.XUnitTests/bin/" + testDirectory + "/*.XUnitTests.dll") 
+    let testDlls = !! ("./*.XUnitTests/bin/" + testDirectory + "/*.XUnitTests.dll")
 
     for testDll in testDlls do
         shouldRunTests <- true
@@ -409,7 +410,7 @@ Target "Run Jasmine Tests" (fun _ ->
     trace "Run Jasmine Tests"
 
     let subdirs = FileSystemHelper.directoryInfo(currentDirectory).EnumerateDirectories("*.JasmineTests")
-    
+
     let mutable jamsineTestDir = ""
 
     for directs in subdirs do
@@ -427,14 +428,14 @@ Target "Run Jasmine Tests" (fun _ ->
 
         if specRunnerFile.IsNone then
             trace "Skipping Jasmine Tests"
-        else  
+        else
             let result =
                     ExecProcess (fun info ->
                         info.FileName <- phantomJsPath
                         info.Arguments <- jasmineRunnerPath + @" file:///" + specRunnerFile.Value.Replace(@"\",@"/")
                         info.RedirectStandardError <- true
                     ) (System.TimeSpan.FromMinutes 10.)
-        
+
             if result <> 0 then failwith "Failed to run Jasmine Tests"
 )
 
@@ -442,20 +443,20 @@ Target "Run Jasmine Tests" (fun _ ->
 Target "Run Acceptance Tests" (fun _ ->
 
     trace "Run Acceptance Tests"
-    
+
     let mutable shouldRunTests = false
 
-    let testDlls = !! ("./**/bin/" + testDirectory + "/*.AcceptanceTests.dll") 
-    
+    let testDlls = !! ("./**/bin/" + testDirectory + "/*.AcceptanceTests.dll")
+
     for testDll in testDlls do
         shouldRunTests <- true
-    
+
     if shouldRunTests then
         testDlls |> Fake.Testing.NUnit3.NUnit3 (fun p ->
             {p with
                 ToolPath = nUnitToolPath;
                 StopOnError = false;
-                Agents = Some 1;    
+                Agents = Some 1;
                 Testlist = acceptanceTestPlayList;
                 ResultSpecs = [("TestResult.xml;format=" + nunitTestFormat)];
                 })
@@ -464,7 +465,7 @@ Target "Run Acceptance Tests" (fun _ ->
 Target "Compile Views" (fun _ ->
     if shouldPublishSite then
         trace "Compiling views"
-    
+
         let directoryinfo = FileSystemHelper.directoryInfo(@".\" @@ publishDirectory)
         let directory = directoryinfo.FullName
         trace directory
@@ -481,7 +482,7 @@ Target "Compile Views" (fun _ ->
                 info.Arguments <- @"-v \" + folderPrecompiled + " -p . " + directoryOutput
                 info.WorkingDirectory <- publishDirectory
             ) (System.TimeSpan.FromMinutes 30.)
-        
+
 
 
         if result <> 0 then failwith "Failed to compile views"
@@ -492,7 +493,7 @@ Target "Compile Views" (fun _ ->
 Target "Build Projects" (fun _ ->
 
     trace "Building Projects"
-    
+
     !! (@".\**\*.csproj")
       |> myBuildConfig "" "Rebuild"
       |> Log "AppBuild-Output: "
@@ -517,7 +518,7 @@ Target "Zip Compiled Source" (fun _ ->
         let directory = directoryinfo.FullName
 
 
-        !! (directory + "/**/*.*") 
+        !! (directory + "/**/*.*")
             -- "*.zip"
             |> Zip directory (publishDirectory @@  (sprintf  @"\..\%s.%s.zip" projectName versionNumber))
     else
@@ -557,23 +558,23 @@ Target "Create Development Site in IIS" (fun _ ->
 
 
 Target "Create Nuget Package" (fun _ ->
-    
+
 
     if testDirectory.ToLower() = "release" then
-        let nupkgFiles = !! (currentDirectory + "/**/*.nuspec") 
-        
+        let nupkgFiles = !! (currentDirectory + "/**/*.nuspec")
+
         for nupkgFile in nupkgFiles do
             let fileInfo = fileSystemInfo(nupkgFile)
             let name = fileInfo.Name.Replace(fileInfo.Extension,"")
-            
+
             let mutable outputPath = FileSystemHelper.DirectoryName(fileInfo.FullName)
 
             if FileSystemHelper.directoryExists(FileSystemHelper.DirectoryName(fileInfo.FullName) @@ nugetOutputDirectory) then
                 outputPath <- FileSystemHelper.DirectoryName(fileInfo.FullName) @@ nugetOutputDirectory
-                
+
             (fileInfo.FullName)
-            |> NuGet (fun p -> 
-                {p with               
+            |> NuGet (fun p ->
+                {p with
                     Authors = [name]
                     Project = name
                     Summary = name
