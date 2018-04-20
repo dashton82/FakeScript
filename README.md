@@ -62,7 +62,7 @@ Second Parameter is for the Target
 ````
 
 ### Publishing Profile
-A publishing profile is required to be able to create the test version of the site. The format for this name should be [SolutionName]PublishProfile, and must exist in a project named *.web.
+A publishing profile is required to be able to create the test version of the site. The format for this name should be [SolutionName]PublishProfile.
 
 ### Unit Tests
 Unit test projects using NUnit should be named "*.UnitTests" these will then automatically be picked up. A Single TestResult.xml file is then created at the same level of the solution. For XUnitTests, projects should be named "*.XUnitTests". This will produce a separate xml result file TestResultXunit.xml
