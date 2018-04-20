@@ -25,6 +25,15 @@ After installed, you will have in the root of your solution:
 
 Run __RunBuild.Bat__ from the command line. This will automatically detect the solution file in your folder. This will build all projects in the solution, by default this is done in Debug configuration.
 
+### Restore Packages
+
+It is possible to pass through your own custom nuget package sources. By default the following package source is used: https://www.nuget.org/api/v2/
+
+Through RunbBuild.bat you can modify it to be:
+```
+"tools\FAKE\tools\FAKE.exe" "Build.fsx" %2 "publishDirectory=Publish" "buildMode=%1" "playList=%3" "nugetPackageSources=https://www.nuget.org/api/v2,http://mycustomsource"
+```
+The extra parameter of nugetPackageSources has been added which can be many nuget sources comma separated. If you have already been using the FAKE Build script you will need to change Build.fsx to incorporate this breaking change.
 
 ### Custom Build Steps
 By default the DefaultTargets.fsx is overwritten with every update of the nuget package. The Build.fsx and CustomTargets.fsx are not and are intended for your build usages cusomisation. Within CustomTargets you can put any addtional operations that you wish to be ran, these will then be loaded within Build.fsx. Build.fsx can be modifed so that you can ammend the build like shown below:
@@ -33,11 +42,12 @@ By default the DefaultTargets.fsx is overwritten with every update of the nuget 
    ==>"Set Solution Name"
    ==>"Update Assembly Info Version Numbers"
    ==>"Clean Directories"
+   ==>"Restore Packages"
    ==>"Clean Projects"
    ==>"Build Projects"
    ==>"Run XUnit Tests"
 ```
-The only ones that are core to other steps are the first two. These are required for setting working directories and determining if certain steps can be run.
+The only ones that are core to other steps are the first two. These are required for setting working directories and determining if certain steps can be run. 
 
 
 ### Command Line options
