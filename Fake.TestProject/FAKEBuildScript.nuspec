@@ -2,7 +2,7 @@
 <package xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">    
   <id>FAKEBuildScript</id>
-  <version>1.2.7</version>
+  <version>1.3.0</version>
   <authors>Daniel Ashton</authors>
   <owners>Daniel Ashton</owners>
   <summary>Simple Script used for building .NET projects locally and on a CI</summary>
@@ -11,7 +11,7 @@
   Simply install the nuget package and then execute the RunBuild.bat file. 
   This will then build the solution file, and run any tests that are available. The Tests are picked up by convention, anything ending in .UnitTests, .XUnitTests and .JasmineTests. 
   If you have a project and there is a Publishing Profile, named [SolutionName]PublishProfile this will also compile your views for you. Cloud projects are only built with the Release flag set.</description>
-  <releaseNotes>@releaseNotes@</releaseNotes>
+  <releaseNotes>Contains a breaking change for anyone upgrading. The RestorePackages() command has been removed and replaced with a custom function Restore Packages, please see README for implementation</releaseNotes>
   <licenseUrl>https://github.com/dashton82/FakeScript</licenseUrl>
   <projectUrl>https://github.com/dashton82/FakeScript</projectUrl>
   <tags>build fake f# CI .NET</tags>
