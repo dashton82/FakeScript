@@ -6,10 +6,6 @@ open Fake
 
 open Fake.IISHelper
 
-let findNuget = @"tools/nuget"
-
-RestorePackages()
-
 let nUnitRunner = "nunit3-console.exe"
 let xUnitRunner = "xunit.console.exe"
 let mutable nUnitToolPath = @"tools\NUnit.ConsoleRunner\"
@@ -35,6 +31,8 @@ let devWebsitePort = getBuildParamOrDefault "devport" "7071"
 let accWebsitePort = getBuildParamOrDefault "accport" "5051"
 
 let acceptanceTestPlayList = getBuildParamOrDefault "playList" ""
+
+let nugetPackageSources = getBuildParamOrDefault "nugetPackageSources" "https://www.nuget.org/api/v2"
 
 let mutable projectName = ""
 let mutable folderPrecompiled = @"\"+ projectName + ".Release_precompiled "
@@ -139,6 +137,23 @@ Target "Set Solution Name" (fun _ ->
     else
         solutionFilePresent <- false
 
+)
+
+let RestorePackageCustomSource(packageFile) =
+  trace(packageFile)
+
+  let sourcesArray = nugetPackageSources.Split(',') |> Seq.toList
+  
+  packageFile
+    |> RestorePackage (fun p ->
+        { p with
+            Sources = sourcesArray
+            OutputPath = currentDirectory @@ "packages"
+            Retries = 4 })
+
+Target "Restore Packages" (fun _ -> 
+    let packages = !! "./**/packages.config"
+    packages |> Seq.iter RestorePackageCustomSource
 )
 
 Target "Update Assembly Info Version Numbers"(fun _ ->

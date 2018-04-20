@@ -17,7 +17,8 @@ open Fake
 "Set version number"
    ==>"Set Solution Name"
    ==>"Update Assembly Info Version Numbers"
-   ==>"Clean Directories" 
+   ==>"Clean Directories"
+   ==>"Restore Packages"
    ==>"Build Projects"
    ==>"Run NUnit Tests"
    ==>"Run XUnit Tests"
@@ -37,4 +38,4 @@ open Fake
     ==>"Set Solution Name"
     ==> "Zip Compiled Source"
    
-RunTargetOrDefault  "Create Nuget Package"
+RunTargetOrDefault "Create Nuget Package"
